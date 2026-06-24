@@ -3728,11 +3728,15 @@ function _agentRow(a) {
     </td>
     <td style="padding:.75rem 1rem;font-size:12px;color:var(--muted)">${((a.phi_contribution||0)*100).toFixed(1)}%</td>
     <td style="padding:.75rem 1rem">
-      ${a.status === 'active' ? `<button onclick="openRetireWizard('${a.id}','${a.name.replace(/'/g,"\\'")}','${a.department}')"
-        style="background:none;border:1px solid rgba(229,80,74,.3);color:var(--red);font-size:11px;padding:4px 10px;border-radius:5px;cursor:pointer;font-family:var(--fb)">Retire</button>` : ''}
-      ${a.status === 'retired' ? `<span style="font-size:11px;color:var(--faint)">${age}d ago</span>` : ''}
-      ${a.status === 'paused' ? `<button onclick="resumeAgent('${a.id}')"
-        style="background:none;border:1px solid var(--green-line);color:var(--green);font-size:11px;padding:4px 10px;border-radius:5px;cursor:pointer;font-family:var(--fb)">Resume</button>` : ''}
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button onclick="openCodeDeploy('${a.id}','${a.name.replace(/'/g,"\\'")}')"
+          style="background:none;border:1px solid var(--blue-d);color:var(--blue);font-size:11px;padding:4px 10px;border-radius:5px;cursor:pointer;font-family:var(--fb)" title="Generate code + deploy to Azure">⚙ Code</button>
+        ${a.status === 'active' ? `<button onclick="openRetireWizard('${a.id}','${a.name.replace(/'/g,"\\'")}','${a.department}')"
+          style="background:none;border:1px solid rgba(229,80,74,.3);color:var(--red);font-size:11px;padding:4px 10px;border-radius:5px;cursor:pointer;font-family:var(--fb)">Retire</button>` : ''}
+        ${a.status === 'retired' ? `<span style="font-size:11px;color:var(--faint)">${age}d ago</span>` : ''}
+        ${a.status === 'paused' ? `<button onclick="resumeAgent('${a.id}')"
+          style="background:none;border:1px solid var(--green-line);color:var(--green);font-size:11px;padding:4px 10px;border-radius:5px;cursor:pointer;font-family:var(--fb)">Resume</button>` : ''}
+      </div>
     </td>
   </tr>`;
 }
@@ -3976,6 +3980,194 @@ async function resumeAgent(agentId) {
     toast('Agent resumed');
     await loadAgents(_agentsActiveTab);
   } catch(e) { toast(`Error: ${e.message}`); }
+}
+
+// ─── CODE GENERATION + AZURE DEPLOY ──────────────────────────────────────────
+
+let _codeModal_agentId = null;
+let _codeModal_deployId = null;
+let _codeModal_pollTimer = null;
+
+async function openCodeDeploy(agentId, agentName) {
+  _codeModal_agentId = agentId;
+  _codeModal_deployId = null;
+  if (_codeModal_pollTimer) { clearInterval(_codeModal_pollTimer); _codeModal_pollTimer = null; }
+
+  // Inject modal if not present
+  if (!document.getElementById('code-modal')) {
+    document.body.insertAdjacentHTML('beforeend', _codeDeployModal());
+  }
+  document.getElementById('code-modal').style.display = 'flex';
+  document.getElementById('cd-agent-title').textContent = agentName;
+  document.getElementById('cd-tabs').style.display = 'none';
+  document.getElementById('cd-loading').style.display = 'block';
+  document.getElementById('cd-loading').textContent = 'Generating code…';
+
+  try {
+    const r = await fetch('/api/v1/deployment/generate-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agent_id: agentId, org_id: AGENT_ORG }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Failed');
+    document.getElementById('cd-loading').style.display = 'none';
+    document.getElementById('cd-tabs').style.display = 'block';
+    document.getElementById('cd-code-agent').textContent = d.agent_py || '';
+    document.getElementById('cd-code-docker').textContent = d.dockerfile || '';
+    document.getElementById('cd-code-k8s').textContent = d.k8s_manifest || '# ACI deployment — no K8s manifest needed';
+    document.getElementById('cd-code-sdk').textContent = d.tessera_sdk_py || '';
+    document.getElementById('cd-image-tag').textContent = d.image_tag || '';
+    document.getElementById('cd-acr-login').textContent = d.acr_login || '';
+    document.getElementById('cd-compute').textContent = (d.compute_target || 'aci').toUpperCase();
+    const cmds = (d.deploy_commands || []).join('\n');
+    document.getElementById('cd-deploy-cmds').textContent = cmds;
+    cdShowTab('agent');
+  } catch(e) {
+    document.getElementById('cd-loading').textContent = `Error: ${e.message}`;
+  }
+}
+
+function _codeDeployModal() {
+  return `<div id="code-modal" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(5,5,5,.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem">
+    <div style="background:var(--panel);border:1px solid var(--line);border-radius:14px;width:100%;max-width:780px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden">
+      <!-- Header -->
+      <div style="padding:1.25rem 1.5rem 1rem;border-bottom:1px solid var(--line2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+        <div>
+          <div style="font-family:var(--fh);font-size:19px" id="cd-agent-title">Agent</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">
+            <span id="cd-compute" style="color:var(--blue)">ACI</span> ·
+            Image: <code style="font-size:11px;color:var(--amber)" id="cd-image-tag">—</code> ·
+            ACR: <code style="font-size:11px;color:var(--faint)" id="cd-acr-login">—</code>
+          </div>
+        </div>
+        <div style="display:flex;gap:.625rem;align-items:center">
+          <button onclick="triggerDeploy()" id="cd-deploy-btn" class="btn btn-green">▶ Deploy to Azure</button>
+          <button onclick="closeCodeModal()" style="background:none;border:none;color:var(--faint);font-size:20px;cursor:pointer;padding:4px 8px">×</button>
+        </div>
+      </div>
+      <!-- Deploy status bar -->
+      <div id="cd-status-bar" style="display:none;padding:.625rem 1.5rem;background:var(--panel2);border-bottom:1px solid var(--line2);font-size:12px;color:var(--muted)">
+        Status: <span id="cd-status-text" style="color:var(--green)">Queued</span>
+        <span id="cd-status-detail" style="color:var(--faint);margin-left:.5rem"></span>
+      </div>
+      <!-- Loading -->
+      <div id="cd-loading" style="padding:2rem;color:var(--faint);font-size:13px">Generating code…</div>
+      <!-- Tab bar -->
+      <div id="cd-tabs" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div style="display:flex;border-bottom:1px solid var(--line2);flex-shrink:0;padding:0 1.5rem">
+          ${[
+            {id:'agent',label:'agent.py'},
+            {id:'docker',label:'Dockerfile'},
+            {id:'k8s',label:'k8s.yaml'},
+            {id:'sdk',label:'tessera_sdk.py'},
+            {id:'cmds',label:'Deploy Commands'},
+            {id:'logs',label:'Logs'},
+          ].map(t => `<button id="cd-tab-${t.id}" onclick="cdShowTab('${t.id}')"
+            style="background:none;border:none;padding:.625rem .875rem;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--faint);border-bottom:2px solid transparent;transition:.15s">${t.label}</button>`).join('')}
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:1rem 1.5rem">
+          ${['agent','docker','k8s','sdk'].map(t => `
+            <div id="cd-panel-${t}" style="display:none;position:relative">
+              <button onclick="copyCode('cd-code-${t}')" style="position:absolute;top:0;right:0;background:var(--panel2);border:1px solid var(--line);border-radius:5px;color:var(--muted);font-size:11px;padding:4px 10px;cursor:pointer;font-family:var(--fb)">Copy</button>
+              <button onclick="dlCode('cd-code-${t}','${t === 'agent' ? 'agent.py' : t === 'docker' ? 'Dockerfile' : t === 'k8s' ? 'k8s.yaml' : 'tessera_sdk.py'}')" style="position:absolute;top:0;right:60px;background:var(--panel2);border:1px solid var(--line);border-radius:5px;color:var(--muted);font-size:11px;padding:4px 10px;cursor:pointer;font-family:var(--fb)">↓ Download</button>
+              <pre id="cd-code-${t}" style="background:var(--void);border:1px solid var(--line2);border-radius:8px;padding:1rem;font-size:11px;line-height:1.6;overflow-x:auto;color:var(--text);margin-top:2rem;white-space:pre"></pre>
+            </div>`).join('')}
+          <div id="cd-panel-cmds" style="display:none">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:.75rem">Run these commands after setting Azure credentials. Or click <strong style="color:var(--green)">Deploy to Azure</strong> to let Tessera do it.</div>
+            <pre id="cd-deploy-cmds" style="background:var(--void);border:1px solid var(--line2);border-radius:8px;padding:1rem;font-size:11px;line-height:1.7;overflow-x:auto;color:var(--amber);white-space:pre"></pre>
+          </div>
+          <div id="cd-panel-logs" style="display:none">
+            <pre id="cd-logs-content" style="background:var(--void);border:1px solid var(--line2);border-radius:8px;padding:1rem;font-size:11px;line-height:1.6;overflow-x:auto;color:var(--text);white-space:pre;min-height:200px">No deployment started yet. Click ▶ Deploy to Azure.</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function cdShowTab(tab) {
+  ['agent','docker','k8s','sdk','cmds','logs'].forEach(t => {
+    const p = document.getElementById(`cd-panel-${t}`);
+    const b = document.getElementById(`cd-tab-${t}`);
+    if (p) p.style.display = t === tab ? 'block' : 'none';
+    if (b) { b.style.color = t === tab ? 'var(--green)' : 'var(--faint)'; b.style.borderBottomColor = t === tab ? 'var(--green)' : 'transparent'; }
+  });
+}
+
+function copyCode(elId) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => toast('Copied to clipboard'));
+}
+
+function dlCode(elId, filename) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const blob = new Blob([el.textContent], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+
+async function triggerDeploy() {
+  const btn = document.getElementById('cd-deploy-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Deploying…'; }
+  const statusBar = document.getElementById('cd-status-bar');
+  if (statusBar) statusBar.style.display = 'block';
+
+  try {
+    const r = await fetch('/api/v1/deployment/deploy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agent_id: _codeModal_agentId, org_id: AGENT_ORG }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Failed');
+    _codeModal_deployId = d.deployment_id;
+    if (d.simulate) {
+      const st = document.getElementById('cd-status-text');
+      if (st) st.textContent += ' (simulate mode — set AZURE_* vars for real deploy)';
+    }
+    cdShowTab('logs');
+    // Poll for status
+    _codeModal_pollTimer = setInterval(() => _pollDeploy(), 2000);
+  } catch(e) {
+    toast(`Deploy error: ${e.message}`);
+    if (btn) { btn.disabled = false; btn.textContent = '▶ Deploy to Azure'; }
+  }
+}
+
+async function _pollDeploy() {
+  if (!_codeModal_deployId) return;
+  try {
+    const d = await GET(`/deployment/deployments/${_codeModal_deployId}`);
+    const st  = document.getElementById('cd-status-text');
+    const det = document.getElementById('cd-status-detail');
+    const logs = document.getElementById('cd-logs-content');
+    const btn  = document.getElementById('cd-deploy-btn');
+
+    const STATUS_COLORS = { queued:'var(--faint)', provisioning:'var(--blue)', building:'var(--blue)',
+      pushing:'var(--blue)', deploying:'var(--amber)', running:'var(--green)', failed:'var(--red)', stopped:'var(--faint)' };
+
+    if (st)  { st.textContent = d.status || ''; st.style.color = STATUS_COLORS[d.status] || 'var(--muted)'; }
+    if (det) det.textContent = d.status_detail || '';
+    if (logs) logs.textContent = (d.logs || 'Waiting for logs…').trim();
+
+    if (d.status === 'running' || d.status === 'failed' || d.status === 'stopped') {
+      clearInterval(_codeModal_pollTimer); _codeModal_pollTimer = null;
+      if (btn) { btn.disabled = false; btn.textContent = d.status === 'running' ? '✓ Running' : '▶ Deploy to Azure'; }
+      if (d.status === 'running') toast(`Agent deployed and running on ${d.compute_target?.toUpperCase()}`);
+      if (d.status === 'failed') toast(`Deployment failed: ${d.error?.slice(0,80) || 'see logs'}`);
+    }
+  } catch(e) { /* ignore poll errors */ }
+}
+
+function closeCodeModal() {
+  if (_codeModal_pollTimer) { clearInterval(_codeModal_pollTimer); _codeModal_pollTimer = null; }
+  const m = document.getElementById('code-modal');
+  if (m) m.style.display = 'none';
 }
 
 // ─── ONBOARDING WIZARD ───────────────────────────────────────────────────

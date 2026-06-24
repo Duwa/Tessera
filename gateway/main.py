@@ -63,6 +63,7 @@ SERVICES = {
     "compensation":      os.getenv("COMPENSATION_URL",       "http://localhost:8022"),
     "absence":           os.getenv("ABSENCE_URL",            "http://localhost:8023"),
     "workforce-planning": os.getenv("WORKFORCE_PLANNING_URL","http://localhost:8024"),
+    "deployment":         os.getenv("DEPLOYMENT_URL",          "http://localhost:8028"),
     "finance":           os.getenv("FINANCE_URL",            "http://localhost:8025"),
     "knowledge":         os.getenv("KNOWLEDGE_URL",          "http://localhost:8026"),
     "service-catalog":   os.getenv("SERVICE_CATALOG_URL",    "http://localhost:8027"),

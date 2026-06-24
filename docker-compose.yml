@@ -44,7 +44,8 @@ services:
       FINANCE_URL:          http://finance:8025
       KNOWLEDGE_URL:        http://knowledge:8026
       SERVICE_CATALOG_URL:  http://service-catalog:8027
-    depends_on: [cost-benefit, payroll, learning, twin, people, expenses, onboarding, governance, intake, trace, agent-factory, identity, itsm, workos, notifications, audit, time-attendance, benefits, recruiting, performance, succession, compensation, absence, workforce-planning, finance, knowledge, service-catalog]
+      DEPLOYMENT_URL:       http://deployment:8028
+    depends_on: [cost-benefit, payroll, learning, twin, people, expenses, onboarding, governance, intake, trace, agent-factory, identity, itsm, workos, notifications, audit, time-attendance, benefits, recruiting, performance, succession, compensation, absence, workforce-planning, finance, knowledge, service-catalog, deployment]
     networks: [tessera-net]
     restart: unless-stopped
 
@@ -380,6 +381,28 @@ services:
     ports: ["8027:8027"]
     environment:
       DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_catalog
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  deployment:
+    build: ./services/deployment
+    ports: ["8028:8028"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_deployment
+      AGENT_FACTORY_URL: http://agent-factory:8011
+      AZURE_SUBSCRIPTION_ID: ${AZURE_SUBSCRIPTION_ID:-}
+      AZURE_TENANT_ID:       ${AZURE_TENANT_ID:-}
+      AZURE_CLIENT_ID:       ${AZURE_CLIENT_ID:-}
+      AZURE_CLIENT_SECRET:   ${AZURE_CLIENT_SECRET:-}
+      AZURE_RESOURCE_GROUP:  ${AZURE_RESOURCE_GROUP:-tessera-rg}
+      AZURE_LOCATION:        ${AZURE_LOCATION:-eastus}
+      AZURE_ACR_NAME:        ${AZURE_ACR_NAME:-tesseraacr}
+      AZURE_AKS_CLUSTER:     ${AZURE_AKS_CLUSTER:-tessera-aks}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # for docker-py image builds
     depends_on:
       postgres:
         condition: service_healthy

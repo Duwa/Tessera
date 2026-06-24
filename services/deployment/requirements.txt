@@ -1,0 +1,15 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+httpx==0.27.0
+pydantic==2.7.4
+asyncpg==0.29.0
+# Azure SDK — install in production; service degrades gracefully without them
+azure-identity==1.17.1
+azure-mgmt-resource==23.1.1
+azure-mgmt-containerregistry==10.3.0
+azure-mgmt-containerservice==31.0.0
+azure-mgmt-containerinstance==10.1.0
+# Kubernetes client (for AKS manifest apply)
+kubernetes==30.1.0
+# Docker SDK (for local image build + push)
+docker==7.1.0
