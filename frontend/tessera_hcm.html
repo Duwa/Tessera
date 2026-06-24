@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Tessera HCM — Payroll, Learning & Cost-Benefit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0A0A08;
+  --card: #131310;
+  --line: rgba(255,255,255,.08);
+  --text: #F0EDE4;
+  --sub: rgba(240,237,228,.45);
+  --green: #7BCC5A;
+  --blue: #5A9EE5;
+  --amber: #E5B85A;
+  --red: #E55A5A;
+  --purple: #A07BE5;
+  --green-dim: rgba(123,204,90,.12);
+  --blue-dim: rgba(90,158,229,.12);
+  --amber-dim: rgba(229,184,90,.12);
+  --red-dim: rgba(229,90,90,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:14px;line-height:1.6}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(10,10,8,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--line);padding:0 2rem;display:flex;align-items:center;gap:2rem;height:56px}
+.nav-logo{font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:700;letter-spacing:-.02em;color:var(--text);text-decoration:none}
+.nav-logo em{color:var(--green);font-style:italic}
+.nav-tabs{display:flex;gap:0;flex:1}
+.nav-tab{font-size:12px;font-weight:500;padding:0 1rem;height:56px;display:flex;align-items:center;color:var(--sub);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-left:none;border-right:none;border-top:none;font-family:inherit;letter-spacing:.03em}
+.nav-tab:hover{color:var(--text)}
+.nav-tab.active{color:var(--green);border-bottom-color:var(--green)}
+.nav-status{margin-left:auto;font-size:11px;display:flex;align-items:center;gap:.5rem;padding:4px 12px;border-radius:99px;border:1px solid var(--line)}
+.nav-status.online{color:var(--green);border-color:rgba(123,204,90,.25);background:rgba(123,204,90,.07)}
+.nav-status.offline{color:var(--sub)}
+.status-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* TAB PAGES */
+.tab-page{display:none;min-height:calc(100vh - 56px)}
+.tab-page.active{display:block}
+
+/* HERO */
+.hero{padding:3rem 2rem 2.5rem;border-bottom:1px solid var(--line);max-width:1200px;margin:0 auto}
+.hero-eyebrow{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.hero h1{font-family:'Fraunces',Georgia,serif;font-size:clamp(28px,4vw,48px);font-weight:400;line-height:1.06;letter-spacing:-.025em;color:var(--text);margin-bottom:.75rem}
+.hero h1 em{font-style:italic;color:var(--green)}
+.hero-sub{font-size:14px;color:var(--sub);max-width:600px;line-height:1.75}
+
+/* VS BAR */
+.vs-bar{display:flex;gap:1px;background:var(--line);border-radius:10px;overflow:hidden;margin:1.5rem 0;max-width:760px}
+.vs-col{flex:1;background:var(--card);padding:.875rem 1.25rem}
+.vs-label{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:.4rem;color:var(--sub)}
+.vs-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:.25rem}
+.vs-desc{font-size:11px;color:var(--sub);line-height:1.55}
+.vs-divider{background:var(--bg);display:flex;align-items:center;padding:.5rem .625rem}
+.vs-divider span{font-size:10px;color:var(--line);font-weight:700}
+
+/* BODY LAYOUT */
+.body{max-width:1200px;margin:0 auto;padding:2rem}
+.two-col{display:grid;grid-template-columns:360px 1fr;gap:1.5rem;align-items:start}
+@media(max-width:880px){.two-col{grid-template-columns:1fr}}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--line);border-radius:13px;overflow:hidden;margin-bottom:1.25rem}
+.card-head{padding:1rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.card-title{font-family:'Fraunces',Georgia,serif;font-size:16px;color:var(--text)}
+.card-body{padding:1.25rem}
+
+/* FIELDS */
+.field{margin-bottom:.875rem}
+.field label{display:block;font-size:11px;font-weight:500;color:var(--sub);margin-bottom:.35rem;letter-spacing:.02em}
+.field input,.field select,.field textarea{width:100%;background:#1A1A16;border:1px solid var(--line);border-radius:7px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:13px;padding:.55rem .875rem;outline:none;transition:.15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:rgba(123,204,90,.4)}
+.field textarea{resize:vertical;min-height:70px;line-height:1.6}
+.field select option{background:#131310}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+
+/* BUTTONS */
+.btn{font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;padding:9px 20px;border-radius:8px;cursor:pointer;border:1px solid;transition:.15s;display:inline-flex;align-items:center;gap:6px;letter-spacing:.02em}
+.btn-green{background:var(--green);color:#0A0A08;border-color:var(--green)}
+.btn-green:hover{background:#8EE06A}
+.btn-ghost{background:transparent;color:var(--sub);border-color:var(--line)}
+.btn-ghost:hover{color:var(--text);border-color:rgba(255,255,255,.2)}
+.btn-full{width:100%;justify-content:center;padding:12px;font-size:13px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* KPIS */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-radius:10px;overflow:hidden;margin-bottom:1.25rem}
+.kpi{background:var(--card);padding:1rem 1.25rem}
+.kpi-n{font-family:'Fraunces',Georgia,serif;font-size:28px;line-height:1;margin-bottom:3px}
+.kpi-l{font-size:9px;color:var(--sub);text-transform:uppercase;letter-spacing:.07em}
+@media(max-width:600px){.kpis{grid-template-columns:1fr 1fr}}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);padding:.5rem .875rem;border-bottom:1px solid var(--line)}
+.tbl td{padding:.575rem .875rem;border-bottom:1px solid rgba(255,255,255,.03);color:rgba(240,237,228,.65);vertical-align:middle}
+.tbl tr:last-child td{border:none}
+.tbl tr:hover td{background:rgba(255,255,255,.02)}
+
+/* TAGS */
+.tag{font-size:9px;font-weight:700;padding:2px 8px;border-radius:99px;letter-spacing:.05em;text-transform:uppercase;display:inline-block}
+.tag-green{background:var(--green-dim);color:var(--green)}
+.tag-blue{background:var(--blue-dim);color:var(--blue)}
+.tag-amber{background:var(--amber-dim);color:var(--amber)}
+.tag-red{background:var(--red-dim);color:var(--red)}
+.tag-purple{background:rgba(160,123,229,.15);color:var(--purple)}
+
+/* LOADING / EMPTY */
+.empty{text-align:center;padding:4rem 2rem;color:var(--sub)}
+.empty-icon{font-size:40px;margin-bottom:1rem;opacity:.4}
+.empty h3{font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:400;color:rgba(240,237,228,.35);margin-bottom:.4rem}
+.empty p{font-size:12px;line-height:1.7;max-width:280px;margin:0 auto}
+.loading{display:flex;align-items:center;gap:.75rem;padding:1.5rem;color:var(--sub);font-size:13px}
+.demo-note{font-size:11px;color:var(--amber);background:rgba(229,184,90,.07);border:1px solid rgba(229,184,90,.15);border-radius:7px;padding:.5rem .875rem;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+
+/* PROGRESS */
+.progress{height:5px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;border-radius:99px;transition:width .4s}
+
+/* SPIN */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.1);border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+
+/* LEARNING CARD */
+.learn-card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:.75rem;border-left-width:3px}
+.learn-head{padding:.875rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.learn-title{font-size:13px;font-weight:600;color:var(--text);flex:1}
+.learn-body{padding:0 1.25rem 1.25rem}
+.learn-why{font-size:12px;color:var(--amber);margin-bottom:.5rem;line-height:1.55}
+.learn-what{font-size:12px;color:var(--sub);line-height:1.55}
+.learn-meta{display:flex;gap:1.25rem;margin-top:.75rem;font-size:11px;color:var(--sub)}
+
+/* RISK BADGE */
+.risk-high{background:rgba(229,90,90,.15);color:var(--red);border:1px solid rgba(229,90,90,.25);border-radius:8px;padding:.75rem 1rem;margin-bottom:1rem;font-size:12px}
+
+/* ODOO-COMPARE TAG */
+.no-odoo{font-size:9px;background:rgba(160,123,229,.12);color:var(--purple);border:1px solid rgba(160,123,229,.2);padding:2px 7px;border-radius:4px;font-weight:600;letter-spacing:.04em}
+
+/* SCENARIO TABLE */
+.scenario-best{background:rgba(123,204,90,.05);border-left:3px solid var(--green)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <span class="nav-logo">Tess<em>era</em></span>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('payroll',this)">💰 Payroll</button>
+    <button class="nav-tab" onclick="showTab('learning',this)">🎓 Learning</button>
+    <button class="nav-tab" onclick="showTab('costbenefit',this)">📐 Cost-Benefit</button>
+  </div>
+  <div id="api-status" class="nav-status offline">
+    <span class="status-dot"></span>Checking...
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════
+     TAB 1: PAYROLL
+════════════════════════════════════════════════════════ -->
+<div id="tab-payroll" class="tab-page active">
+  <div class="hero">
+    <div class="hero-eyebrow">Payroll Engine · Rival to Odoo hr.payslip</div>
+    <h1>Salary <em>and</em> token allocation.<br>One payslip. True total comp.</h1>
+    <p class="hero-sub">Odoo computes gross-to-net. Tessera adds the Huang (2026) token compensation stream — the AI capability budget every employee is entitled to, tracked on every payslip alongside their salary.</p>
+    <div class="vs-bar">
+      <div class="vs-col"><div class="vs-label">Odoo hr.payslip</div><div class="vs-name">Salary rules + gross/net + deductions</div><div class="vs-desc">Automates salary computation, tax tables, payslip generation, batch runs. Human employees only.</div></div>
+      <div class="vs-divider"><span>VS</span></div>
+      <div class="vs-col" style="border-left:2px solid var(--green)"><div class="vs-label" style="color:var(--green)">Tessera Payroll</div><div class="vs-name">Dual compensation: salary + AI token allocation</div><div class="vs-desc">Everything Odoo does, plus: token allocation column, B* threshold, Huang benchmark, AI agent payslips, total employer cost with tokens.</div></div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div id="payroll-demo-note" class="demo-note" style="display:none">⚠ Backend offline — computing in browser using Huang model. Start Docker for live API.</div>
+    <div class="two-col">
+      <!-- LEFT -->
+      <div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Contract parameters</span></div>
+          <div class="card-body">
+            <div class="field"><label>Unit type</label>
+              <select id="py-type" onchange="payrollTypeChange()">
+                <option value="human">👤 Human employee</option>
+                <option value="ai_agent">🤖 AI agent</option>
+              </select>
+            </div>
+            <div class="grid2">
+              <div class="field"><label>Name</label><input id="py-name" value="Jordan Lee"></div>
+              <div class="field"><label>Department</label>
+                <select id="py-dept">
+                  <option>Engineering</option><option>Product</option><option>Legal</option>
+                  <option>Finance</option><option>Operations</option><option>HR & People</option><option>Sales</option>
+                </select>
+              </div>
+            </div>
+            <div id="py-human-fields">
+              <div class="grid2">
+                <div class="field"><label>Annual salary ($)</label><input id="py-salary" type="number" value="95000"></div>
+                <div class="field"><label>Monthly token budget ($)</label><input id="py-tokens" type="number" value="500"></div>
+              </div>
+              <div class="grid2">
+                <div class="field"><label>Housing allowance ($)</label><input id="py-housing" type="number" value="800"></div>
+                <div class="field"><label>Transport allowance ($)</label><input id="py-transport" type="number" value="200"></div>
+              </div>
+              <div class="field"><label>Tokens consumed this period</label><input id="py-consumed" type="number" value="350" placeholder="0"></div>
+            </div>
+            <div id="py-agent-fields" style="display:none">
+              <div class="field"><label>Monthly token budget ($)</label><input id="py-agent-budget" type="number" value="500"></div>
+              <div class="field"><label>Tokens consumed</label><input id="py-agent-consumed" type="number" value="38000"></div>
+              <div class="field"><label>Tasks completed</label><input id="py-tasks" type="number" value="45"></div>
+              <div class="field"><label>AI model</label><input id="py-model" value="claude-sonnet-4"></div>
+            </div>
+            <button class="btn btn-green btn-full" onclick="computePayslip()">
+              <span id="py-btn-icon">▶</span><span id="py-btn-label">Compute payslip</span>
+            </button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Org payroll run</span></div>
+          <div class="card-body">
+            <p style="font-size:12px;color:var(--sub);margin-bottom:1rem;line-height:1.6">Run payroll for all registered capital units. Produces org-level token analytics and B* status.</p>
+            <button class="btn btn-ghost btn-full" onclick="runOrgPayroll()">Run org payroll batch</button>
+          </div>
+        </div>
+      </div>
+      <!-- RIGHT -->
+      <div id="py-result">
+        <div class="empty"><div class="empty-icon">💰</div><h3>Payslip appears here</h3><p>Configure the contract and compute a payslip.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     TAB 2: LEARNING
+════════════════════════════════════════════════════════ -->
+<div id="tab-learning" class="tab-page">
+  <div class="hero">
+    <div class="hero-eyebrow">Dynamic Learning Engine · Replaces Odoo eLearning</div>
+    <h1>No static catalog.<br><em>Every plan from live agent state.</em></h1>
+    <p class="hero-sub">Odoo eLearning serves pre-built courses. Tessera generates learning opportunities fresh from what your AI agents are doing right now — the gaps that exist because of the agents in your org, not the ones someone thought up 6 months ago.</p>
+    <div class="vs-bar">
+      <div class="vs-col"><div class="vs-label">Odoo eLearning</div><div class="vs-name">Static course catalog, videos, quizzes, certifications</div><div class="vs-desc">Build courses, track completions, award karma points, run certifications. Good for known skills.</div></div>
+      <div class="vs-divider"><span>VS</span></div>
+      <div class="vs-col" style="border-left:2px solid var(--green)"><div class="vs-label" style="color:var(--green)">Tessera Learning</div><div class="vs-name">Generated from agent state, belief gaps, utilization</div><div class="vs-desc">Shadow agent, paired task, replacement risk scoring. Linked to payroll — low token utilization triggers a learning plan automatically.</div></div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div id="learn-demo-note" class="demo-note" style="display:none">⚠ Backend offline — generating plan in browser.</div>
+    <div class="two-col">
+      <!-- LEFT -->
+      <div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Employee context</span></div>
+          <div class="card-body">
+            <div class="grid2">
+              <div class="field"><label>Name</label><input id="le-name" value="Jordan Lee"></div>
+              <div class="field"><label>Role</label><input id="le-role" value="Senior Engineer"></div>
+            </div>
+            <div class="field"><label>Belief alignment (0–1)</label>
+              <input type="range" id="le-align" min="0" max="1" step="0.05" value="0.58"
+                oninput="document.getElementById('le-align-val').textContent=(+this.value*100).toFixed(0)+'%'">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-top:2px">
+                <span>Drifting</span><span id="le-align-val" style="color:var(--text);font-weight:600">58%</span><span>Aligned</span>
+              </div>
+            </div>
+            <div class="field"><label>Token utilization this epoch (%)</label>
+              <input type="range" id="le-util" min="0" max="100" value="32"
+                oninput="document.getElementById('le-util-val').textContent=this.value+'%'">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-top:2px">
+                <span>0%</span><span id="le-util-val" style="color:var(--text);font-weight:600">32%</span><span>100%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">AI agent working alongside</span></div>
+          <div class="card-body">
+            <div class="field"><label>Primary agent</label>
+              <select id="le-agent">
+                <option value="research">🔍 Research Agent — Frontier (fitness 0.86)</option>
+                <option value="code">💻 Code Agent — Advanced (fitness 0.78)</option>
+                <option value="legal">⚖️ Legal Agent — Capable (fitness 0.67)</option>
+                <option value="finance">📊 Finance Agent — Basic (fitness 0.51)</option>
+              </select>
+            </div>
+            <div class="field"><label>RAG depth</label>
+              <select id="le-rag">
+                <option value="5">5 — Deep retrieval (Frontier)</option>
+                <option value="4" selected>4 — Strong</option>
+                <option value="3">3 — Moderate</option>
+                <option value="2">2 — Basic</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-green btn-full" onclick="generatePlan()">
+          <span id="le-btn-icon">▶</span><span id="le-btn-label">Generate learning plan</span>
+        </button>
+      </div>
+      <!-- RIGHT -->
+      <div id="le-result">
+        <div class="empty"><div class="empty-icon">🎓</div><h3>Learning plan appears here</h3><p>Configure the context and generate a dynamic plan from live agent state.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     TAB 3: COST-BENEFIT
+════════════════════════════════════════════════════════ -->
+<div id="tab-costbenefit" class="tab-page">
+  <div class="hero">
+    <div class="hero-eyebrow">Cost-Benefit Engine · No Odoo Equivalent</div>
+    <h1>Is your AI investment<br><em>clearing B*?</em></h1>
+    <p class="hero-sub">No other HCM platform — not Odoo, not Workday, not SAP — answers this question. The B* threshold from Rajendra (2026) tells you whether your token spend is generating positive org fitness returns or just burning money. The substitution curve tells you the right human:agent mix.</p>
+  </div>
+
+  <div class="body">
+    <div id="cb-demo-note" class="demo-note" style="display:none">⚠ Backend offline — computing model in browser.</div>
+
+    <div class="kpis" id="cb-kpis">
+      <div class="kpi"><div class="kpi-n" id="cb-fitness" style="color:var(--text)">—</div><div class="kpi-l">Org fitness</div></div>
+      <div class="kpi"><div class="kpi-n" id="cb-bstar" style="color:var(--amber)">—</div><div class="kpi-l">B* threshold</div></div>
+      <div class="kpi"><div class="kpi-n" id="cb-r" style="color:var(--green)">—</div><div class="kpi-l">Budget / B* ratio</div></div>
+      <div class="kpi"><div class="kpi-n" id="cb-roi" style="color:var(--blue)">—</div><div class="kpi-l">ROI multiple</div></div>
+    </div>
+
+    <div class="two-col">
+      <!-- LEFT -->
+      <div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Organisation parameters</span></div>
+          <div class="card-body">
+            <div class="grid2">
+              <div class="field"><label>Human headcount</label><input type="number" id="cb-humans" value="25" min="1" oninput="runCostBenefit()"></div>
+              <div class="field"><label>AI agents</label><input type="number" id="cb-agents" value="8" min="0" oninput="runCostBenefit()"></div>
+            </div>
+            <div class="field"><label>Monthly token budget ($)</label>
+              <input type="range" id="cb-budget" min="500" max="20000" step="100" value="3000"
+                oninput="document.getElementById('cb-budget-val').textContent='$'+Number(this.value).toLocaleString()+'/mo';runCostBenefit()">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-top:2px">
+                <span>$500</span><span id="cb-budget-val" style="color:var(--text);font-weight:600">$3,000/mo</span><span>$20k</span>
+              </div>
+            </div>
+            <div class="grid2">
+              <div class="field"><label>Avg annual salary ($)</label><input type="number" id="cb-salary" value="85000" oninput="runCostBenefit()"></div>
+              <div class="field"><label>NK ruggedness (K)</label>
+                <select id="cb-k" onchange="runCostBenefit()">
+                  <option value="2">K=2 (smooth)</option>
+                  <option value="4" selected>K=4 (baseline)</option>
+                  <option value="6">K=6 (complex)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- B* STATUS -->
+        <div class="card" id="cb-status-card">
+          <div class="card-head"><span class="card-title">B* threshold status</span></div>
+          <div class="card-body" id="cb-status-body"><div style="color:var(--sub);font-size:12px">Adjust parameters to see status.</div></div>
+        </div>
+      </div>
+      <!-- RIGHT -->
+      <div>
+        <!-- Substitution curve canvas -->
+        <div class="card" style="margin-bottom:1.25rem">
+          <div class="card-head"><span class="card-title">Fitness vs agent fraction</span><span style="font-size:11px;color:var(--sub)">The substitution curve</span></div>
+          <div class="card-body"><canvas id="cb-curve" style="width:100%;height:160px;display:block"></canvas></div>
+        </div>
+        <!-- Scenario table -->
+        <div class="card">
+          <div class="card-head"><span class="card-title">Budget scenarios</span><span class="no-odoo">No Odoo equivalent</span></div>
+          <div id="cb-scenarios" class="card-body"><div style="color:var(--sub);font-size:12px">Adjust parameters to see scenarios.</div></div>
+        </div>
+        <!-- Payroll ↔ Learning ↔ Cost-Benefit link -->
+        <div class="card" style="margin-top:1.25rem;border-color:rgba(123,204,90,.2)">
+          <div class="card-head"><span class="card-title" style="color:var(--green)">Cross-module intelligence</span></div>
+          <div class="card-body" id="cb-cross-module">
+            <p style="font-size:12px;color:var(--sub);line-height:1.7">
+              Run payroll and the learning engine first — their results feed into the cost-benefit model automatically.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── GATEWAY ─────────────────────────────────────────────────────────────────
+var GW = 'http://localhost:8000/api/v1';
+var _online = false;
+var _payrollResult = null;
+var _learningResult = null;
+
+async function svcCall(svc, path, method, body) {
+  var url = GW + '/' + svc + '/' + path;
+  var opts = { method: method||'GET', headers: {'Content-Type':'application/json'}, signal: AbortSignal.timeout(5000) };
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    var r = await fetch(url, opts);
+    if (!r.ok) throw new Error(r.status);
+    return await r.json();
+  } catch(e) { return null; }
+}
+
+async function checkStatus() {
+  var r = await svcCall('payroll', 'health');
+  _online = !!r;
+  var el = document.getElementById('api-status');
+  el.className = 'nav-status ' + (_online ? 'online' : 'offline');
+  el.innerHTML = '<span class="status-dot"></span>' + (_online ? 'Backend live' : 'Demo mode');
+  ['payroll-demo-note','learn-demo-note','cb-demo-note'].forEach(function(id){
+    var n = document.getElementById(id);
+    if (n) n.style.display = _online ? 'none' : 'flex';
+  });
+}
+checkStatus();
+setInterval(checkStatus, 30000);
+
+// ── TAB SWITCHER ─────────────────────────────────────────────────────────────
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-page').forEach(function(p){p.classList.remove('active')});
+  document.querySelectorAll('.nav-tab').forEach(function(b){b.classList.remove('active')});
+  document.getElementById('tab-'+id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (id === 'costbenefit') runCostBenefit();
+}
+
+// ── PAYROLL ──────────────────────────────────────────────────────────────────
+function payrollTypeChange() {
+  var isAI = document.getElementById('py-type').value === 'ai_agent';
+  document.getElementById('py-human-fields').style.display = isAI ? 'none' : 'block';
+  document.getElementById('py-agent-fields').style.display = isAI ? 'block' : 'none';
+}
+
+async function computePayslip() {
+  var btn = document.getElementById('py-btn-icon');
+  var lbl = document.getElementById('py-btn-label');
+  btn.innerHTML = '<span class="spin" style="border-top-color:#0A0A08"></span>';
+  lbl.textContent = 'Computing...';
+
+  var isAI = document.getElementById('py-type').value === 'ai_agent';
+  var name = document.getElementById('py-name').value || 'Employee';
+  var dept = document.getElementById('py-dept').value;
+  var result = null;
+
+  if (_online) {
+    var body = {
+      contract: {
+        employee_id: 'EMP-' + Date.now(),
+        employee_name: name,
+        unit_type: isAI ? 'ai_agent' : 'human',
+        contract_type: isAI ? 'ai_agent' : 'full_time',
+        start_date: '2026-01-01',
+        department: dept,
+        annual_salary: isAI ? 0 : (parseFloat(document.getElementById('py-salary').value)||95000),
+        monthly_token_allocation: parseFloat(isAI ? document.getElementById('py-agent-budget').value : document.getElementById('py-tokens').value)||500,
+        housing_allowance: isAI ? 0 : (parseFloat(document.getElementById('py-housing').value)||0),
+        transport_allowance: isAI ? 0 : (parseFloat(document.getElementById('py-transport').value)||0),
+      },
+      date_from: '2026-04-01', date_to: '2026-04-30',
+      tokens_consumed: parseFloat(isAI ? document.getElementById('py-agent-consumed').value : document.getElementById('py-consumed').value)||0,
+      tasks_completed: isAI ? (parseInt(document.getElementById('py-tasks').value)||0) : 0,
+    };
+    result = await svcCall('payroll', 'payslip', 'POST', body);
+  }
+
+  if (!result) result = computePayslipLocal(isAI, name, dept);
+  _payrollResult = result;
+
+  btn.textContent = '▶';
+  lbl.textContent = 'Compute payslip';
+  renderPayslip(result);
+  updateCrossMod();
+}
+
+function computePayslipLocal(isAI, name, dept) {
+  if (isAI) {
+    var budget = parseFloat(document.getElementById('py-agent-budget').value)||500;
+    var consumed_tok = parseFloat(document.getElementById('py-agent-consumed').value)||0;
+    var tasks = parseInt(document.getElementById('py-tasks').value)||0;
+    var cost = consumed_tok * 0.001;
+    return {
+      employee_name: name, unit_type: 'ai_agent', department: dept,
+      tokens_allocated: budget, tokens_consumed: consumed_tok, tokens_cost: cost,
+      total_token_allocation: budget, total_compensation: cost, net_salary: 0,
+      b_star_status: budget >= 120 ? 'ABOVE_B*' : 'BELOW_B*', b_star_threshold: 120,
+      huang_benchmark: 0, token_utilization_pct: budget > 0 ? cost/budget*100 : 0,
+      cost_per_outcome: tasks > 0 ? cost/tasks : 0,
+      lines: [
+        {code:'TOKEN_ALLOC',name:'Token Budget Allocated',category:'TOKEN',total:budget,note:'',odoo_equivalent:'NO_EQUIVALENT'},
+        {code:'TOKEN_USED',name:'Token Cost (Actual)',category:'TOKEN',total:-cost,note:consumed_tok.toLocaleString()+' tokens @ $0.001',odoo_equivalent:'NO_EQUIVALENT'},
+        {code:'TOKEN_DELTA',name:'Budget Remaining',category:'TOKEN',total:budget-cost,note:'Tasks: '+tasks+'. Cost/task: $'+(tasks>0?(cost/tasks).toFixed(3):'—'),odoo_equivalent:'NO_EQUIVALENT'},
+        {code:'TOTAL_COMP',name:'Total Agent Cost',category:'TOTAL_COMP',total:cost,note:'Token spend only. No salary.',odoo_equivalent:'NO_EQUIVALENT'},
+      ]
+    };
+  }
+  var salary = parseFloat(document.getElementById('py-salary').value)||95000;
+  var monthly = salary / 12;
+  var housing = parseFloat(document.getElementById('py-housing').value)||0;
+  var transport = parseFloat(document.getElementById('py-transport').value)||0;
+  var tokens_budget = parseFloat(document.getElementById('py-tokens').value)||500;
+  var consumed_t = parseFloat(document.getElementById('py-consumed').value)||0;
+  var gross = monthly + housing + transport;
+  var tax = computeFedTax(gross * 12);
+  var ss = Math.min(monthly, 168600/12) * 0.062;
+  var mc = monthly * 0.0145;
+  var net = gross - tax - ss - mc;
+  var huang = monthly * 0.5;
+  var total_comp = net + tokens_budget;
+  var util = tokens_budget > 0 ? (consumed_t * 0.001 / tokens_budget * 100) : 0;
+  return {
+    employee_name: name, unit_type: 'human', department: dept,
+    gross_salary: gross, net_salary: net, total_deductions: tax+ss+mc,
+    tokens_allocated: tokens_budget, tokens_consumed: consumed_t, tokens_cost: consumed_t*0.001,
+    total_token_allocation: tokens_budget, total_compensation: total_comp,
+    total_employer_cost: gross + monthly*0.062 + monthly*0.0145 + tokens_budget,
+    b_star_status: tokens_budget >= 120 ? 'ABOVE_B*' : 'BELOW_B*', b_star_threshold: 120,
+    huang_benchmark: huang, huang_variance: tokens_budget - huang,
+    token_utilization_pct: util,
+    lines: [
+      {code:'BASIC',name:'Basic Salary',category:'BASIC',total:monthly,note:'',odoo_equivalent:'BASIC'},
+      {code:'HRA',name:'Housing Allowance',category:'ALW',total:housing,note:'',odoo_equivalent:'HRA'},
+      {code:'TA',name:'Transport Allowance',category:'ALW',total:transport,note:'',odoo_equivalent:'TA'},
+      {code:'GROSS',name:'Gross Salary',category:'GROSS',total:gross,note:'',odoo_equivalent:'GROSS'},
+      {code:'SS_EE',name:'Social Security',category:'DED',total:-ss,note:'6.2%',odoo_equivalent:'SS_EE'},
+      {code:'MEDICARE',name:'Medicare',category:'DED',total:-mc,note:'1.45%',odoo_equivalent:'MEDICARE'},
+      {code:'FED_TAX',name:'Federal Income Tax',category:'DED',total:-tax,note:'Progressive brackets',odoo_equivalent:'FED_TAX'},
+      {code:'NET',name:'Net Salary',category:'NET',total:net,note:'',odoo_equivalent:'NET'},
+      {code:'TOKEN_ALLOC',name:'AI Token Allocation',category:'TOKEN',total:tokens_budget,note:'Huang (2026): 50% of salary. Not taxable.',odoo_equivalent:'NO_EQUIVALENT'},
+      {code:'TOKEN_USED',name:'Token Utilization',category:'TOKEN',total:consumed_t*0.001,note:util.toFixed(0)+'% utilized',odoo_equivalent:'NO_EQUIVALENT'},
+      {code:'HUANG_BENCH',name:'Huang (2026) Benchmark',category:'BENCHMARK',total:huang,note:'Recommended allocation. Variance: $'+(tokens_budget-huang>=0?'+':'')+(tokens_budget-huang).toFixed(2),odoo_equivalent:'NO_EQUIVALENT'},
+      {code:'B_STAR',name:'B* Status ('+(tokens_budget>=120?'ABOVE_B*':'BELOW_B*')+')',category:'BENCHMARK',total:tokens_budget-120,note:tokens_budget>=120?'Positive fitness returns.':'Not clearing threshold.',odoo_equivalent:'NO_EQUIVALENT'},
+      {code:'TOTAL_COMP',name:'Total Compensation (Dual)',category:'TOTAL_COMP',total:total_comp,note:'Net salary + token allocation.',odoo_equivalent:'NO_EQUIVALENT'},
+    ]
+  };
+}
+
+function computeFedTax(annualGross) {
+  var brackets = [[0,11600,.10],[11600,47150,.12],[47150,100525,.22],[100525,191950,.24],[191950,243725,.32],[243725,609350,.35],[609350,Infinity,.37]];
+  var tax = 0;
+  for (var b of brackets) {
+    if (annualGross <= b[0]) break;
+    tax += (Math.min(annualGross,b[1])-b[0]) * b[2];
+  }
+  return tax / 12;
+}
+
+function renderPayslip(r) {
+  var isAI = r.unit_type === 'ai_agent';
+  var catColors = {BASIC:'#5A9EE5',ALW:'#7BCC5A',DED:'#E55A5A',GROSS:'#F0EDE4',NET:'#F0EDE4',TOKEN:'#A07BE5',TOTAL_COMP:'#7BCC5A',BENCHMARK:'#E5B85A'};
+  var bColor = r.b_star_status && r.b_star_status.includes('ABOVE') ? '#7BCC5A' : r.b_star_status && r.b_star_status.includes('NEAR') ? '#E5B85A' : '#E55A5A';
+
+  var rows = (r.lines||[]).map(function(l){
+    var color = catColors[l.category]||'rgba(240,237,228,.5)';
+    var noOdoo = l.odoo_equivalent === 'NO_EQUIVALENT' ? '<span class="no-odoo">No Odoo equiv.</span>' : '';
+    return '<tr><td>'+l.name+' '+noOdoo+'</td><td style="font-size:10px;color:var(--sub)">'+l.category+'</td>' +
+      '<td style="text-align:right;font-weight:600;color:'+color+'">'+fmt(l.total)+'</td>' +
+      '<td style="font-size:10px;color:var(--sub)">'+l.note+'</td></tr>';
+  }).join('');
+
+  var html = '';
+  html += '<div class="kpis" style="margin-bottom:1.25rem">' +
+    '<div class="kpi"><div class="kpi-n" style="color:#F0EDE4">'+fmt(r.gross_salary||0)+'</div><div class="kpi-l">Gross salary</div></div>' +
+    '<div class="kpi"><div class="kpi-n" style="color:#7BCC5A">'+fmt(r.net_salary||0)+'</div><div class="kpi-l">Net salary</div></div>' +
+    '<div class="kpi"><div class="kpi-n" style="color:#A07BE5">'+fmt(r.total_token_allocation||0)+'</div><div class="kpi-l">Token allocation</div></div>' +
+    '<div class="kpi"><div class="kpi-n" style="color:#5A9EE5">'+fmt(r.total_compensation||0)+'</div><div class="kpi-l">Total comp (dual)</div></div>' +
+    '</div>';
+
+  html += '<div class="card" style="margin-bottom:1rem">' +
+    '<div class="card-head"><span class="card-title">'+r.employee_name+' · '+(isAI?'AI Agent':'Human Employee')+'</span>' +
+    '<span class="tag '+(r.b_star_status&&r.b_star_status.includes('ABOVE')?'tag-green':'tag-red')+'">'+((r.b_star_status)||'—')+'</span></div>' +
+    '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Item</th><th>Category</th><th style="text-align:right">Amount</th><th>Note</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+
+  if (!isAI && r.total_token_allocation > 0) {
+    var util = r.token_utilization_pct||0;
+    html += '<div class="card"><div class="card-head"><span class="card-title">Token utilization</span>' +
+      '<span class="no-odoo">No Odoo equivalent</span></div>' +
+      '<div class="card-body"><div class="progress" style="margin-bottom:.5rem"><div class="progress-fill" style="width:'+Math.min(100,util)+'%;background:'+(util>60?'#7BCC5A':util>30?'#E5B85A':'#E55A5A')+'"></div></div>' +
+      '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--sub)"><span>Consumed: $'+fmt(r.tokens_cost||0)+'</span><span>Budget: $'+fmt(r.total_token_allocation||0)+'</span><span>Util: '+util.toFixed(1)+'%</span></div>' +
+      (util < 40 ? '<div style="margin-top:.75rem;font-size:12px;color:var(--amber)">⚠ Under-utilization is the org failure mode per Huang (2026). Low utilization auto-triggers a learning plan.</div>' : '') +
+      '</div></div>';
+  }
+
+  document.getElementById('py-result').innerHTML = html;
+}
+
+function fmt(n) {
+  if (n === null || n === undefined) return '—';
+  var abs = Math.abs(n);
+  var str = '$' + abs.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  return n < 0 ? '−' + str : str;
+}
+
+async function runOrgPayroll() {
+  // Demo org run
+  document.getElementById('py-result').innerHTML = '<div class="loading"><span class="spin"></span>Running org payroll...</div>';
+  await new Promise(r=>setTimeout(r,600));
+  var humans = 25, agents = 8, avgSalary = 85000, monthlyBudget = 3200;
+  var totalGross = humans * (avgSalary/12);
+  var totalTokens = monthlyBudget;
+  var bstar = humans * 120;
+  document.getElementById('py-result').innerHTML =
+    '<div class="kpis" style="margin-bottom:1.25rem">' +
+    '<div class="kpi"><div class="kpi-n" style="color:#F0EDE4">'+fmt(totalGross)+'</div><div class="kpi-l">Total gross/mo</div></div>' +
+    '<div class="kpi"><div class="kpi-n" style="color:#7BCC5A">'+fmt(totalGross*0.73)+'</div><div class="kpi-l">Total net/mo</div></div>' +
+    '<div class="kpi"><div class="kpi-n" style="color:#A07BE5">'+fmt(totalTokens)+'</div><div class="kpi-l">Token budget/mo</div></div>' +
+    '<div class="kpi"><div class="kpi-n" style="color:'+(totalTokens>=bstar?'#7BCC5A':'#E55A5A')+'">'+(totalTokens>=bstar?'✓ Above B*':'⚠ Below B*')+'</div><div class="kpi-l">B* status</div></div>' +
+    '</div>' +
+    '<div class="card"><div class="card-head"><span class="card-title">Org payroll run summary</span><span class="no-odoo">B* & token cols: No Odoo equiv.</span></div>' +
+    '<div class="card-body">' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;font-size:12px">' +
+    '<div><div style="color:var(--sub);margin-bottom:2px">Capital units</div><div style="font-weight:600">'+humans+' humans + '+agents+' agents</div></div>' +
+    '<div><div style="color:var(--sub);margin-bottom:2px">B* threshold</div><div style="font-weight:600;color:var(--amber)">$'+bstar.toLocaleString()+'/mo</div></div>' +
+    '<div><div style="color:var(--sub);margin-bottom:2px">Huang target</div><div style="font-weight:600;color:var(--purple)">$'+(humans*(avgSalary/12)*0.5).toLocaleString('en-US',{maximumFractionDigits:0})+'/mo</div></div>' +
+    '<div><div style="color:var(--sub);margin-bottom:2px">Huang ratio</div><div style="font-weight:600;color:var(--green)">'+(totalTokens/(humans*(avgSalary/12)*0.5)*100).toFixed(0)+'%</div></div>' +
+    '</div></div></div>';
+}
+
+// ── LEARNING ─────────────────────────────────────────────────────────────────
+async function generatePlan() {
+  var btn = document.getElementById('le-btn-icon');
+  var lbl = document.getElementById('le-btn-label');
+  btn.innerHTML = '<span class="spin" style="border-top-color:#0A0A08"></span>';
+  lbl.textContent = 'Generating...';
+
+  var align = parseFloat(document.getElementById('le-align').value);
+  var util = parseFloat(document.getElementById('le-util').value);
+  var agentMap = {
+    research: {id:'AGT-001',name:'Research Agent',fitness:0.86,rag:parseInt(document.getElementById('le-rag').value),model:'claude-sonnet-4',domains:['research','analysis','synthesis'],mandateCoherence:0.88,resolution_rate:0.82},
+    code:     {id:'AGT-002',name:'Code Agent',fitness:0.78,rag:parseInt(document.getElementById('le-rag').value),model:'claude-sonnet-4',domains:['code','engineering','technical'],mandateCoherence:0.91,resolution_rate:0.85},
+    legal:    {id:'AGT-003',name:'Legal Agent',fitness:0.67,rag:parseInt(document.getElementById('le-rag').value),model:'gpt-4o',domains:['legal','contracts','compliance'],mandateCoherence:0.79,resolution_rate:0.73},
+    finance:  {id:'AGT-004',name:'Finance Agent',fitness:0.51,rag:parseInt(document.getElementById('le-rag').value),model:'gpt-4o-mini',domains:['finance','accounting'],mandateCoherence:0.71,resolution_rate:0.66},
+  };
+  var agent = agentMap[document.getElementById('le-agent').value];
+  var name = document.getElementById('le-name').value || 'Jordan Lee';
+  var role = document.getElementById('le-role').value || 'Senior Engineer';
+  var result = null;
+
+  if (_online) {
+    var body = {
+      human: {
+        employee_id:'EMP-001', employee_name:name, role:role, department:'Engineering',
+        fitness_score:0.65, activation_score:0.70, belief_alignment:align,
+        belief_vector: Array(12).fill(align + (Math.random()-0.5)*0.1),
+        primary_regime:'C', hcm_level:0.5, self_directed_rate:0.02,
+        token_utilization_pct:util, agents_worked_with:[agent.id],
+      },
+      agents: [{
+        agent_id:agent.id, agent_name:agent.name, model_version:agent.model,
+        fitness_score:agent.fitness, mandate_coherence:agent.mandateCoherence,
+        rag_depth:agent.rag, rag_activations_per_epoch:12,
+        failure_flag:false, failure_count_this_epoch:0,
+        decisions_participated:15, decisions_resolved:Math.round(15*agent.resolution_rate),
+        resolution_rate:agent.resolution_rate, task_domains:agent.domains, avg_tokens_per_task:380,
+      }],
+      org_template_vector: Array(12).fill(0.62),
+      epoch: 3,
+    };
+    result = await svcCall('learning', 'plan', 'POST', body);
+  }
+  if (!result) result = generatePlanLocal(align, util, agent, name, role);
+  _learningResult = result;
+
+  btn.textContent = '▶';
+  lbl.textContent = 'Generate learning plan';
+  renderPlan(result);
+  updateCrossMod();
+}
+
+function getSophistication(fitness) {
+  if (fitness >= 0.85) return 'Frontier';
+  if (fitness >= 0.70) return 'Advanced';
+  if (fitness >= 0.50) return 'Capable';
+  return 'Basic';
+}
+
+function generatePlanLocal(align, util, agent, name, role) {
+  var soph = getSophistication(agent.fitness);
+  var opps = [];
+  var isFrontier = soph === 'Frontier';
+  var isAdvanced = soph === 'Advanced';
+
+  if (util < 35) opps.push({
+    opportunity_id:'TOK-'+Date.now(), title:'Increase AI token utilization',
+    gap_type:'collaboration', urgency:'this_week', regime:'C', format:'experiment',
+    estimated_hours:3, can_do_alongside_work:true,
+    why_now:'Token utilization is '+util.toFixed(0)+'%. Per Huang (2026), the org is paying for AI capability you\'re not using.',
+    what_you_will_be_able_to_do:'Identify 3 repeating tasks agents can assist with and build a delegation habit.',
+    completion_indicator:'Token utilization above 40% next epoch.',
+    suggested_resources:['Review your agent\'s mandate','Pick your most repetitive task this week'],
+    replacement_risk:0, odoo_equivalent:'NO_EQUIVALENT — payroll-linked learning not in Odoo'
+  });
+
+  if (align < 0.60) opps.push({
+    opportunity_id:'BEL-'+Date.now(), title:'Belief alignment session',
+    gap_type:'belief_drift', urgency:'immediate', regime:'A', format:'workshop',
+    estimated_hours:3, can_do_alongside_work:false,
+    why_now:'Alignment at '+( align*100).toFixed(0)+'%. Collaborative work with AI agents becomes harder when you\'re pulling in a different direction from the org template.',
+    what_you_will_be_able_to_do:'Articulate exactly where your perspective diverges — and whether to align or surface it as productive dissent.',
+    completion_indicator:'Belief alignment above 65% at next epoch.',
+    suggested_resources:['One-on-one with manager','Belief profile review session'],
+    replacement_risk:0, odoo_equivalent:'hr.appraisal (partial) — no belief vector in Odoo'
+  });
+
+  if (isFrontier || isAdvanced) opps.push({
+    opportunity_id:'OVS-'+Date.now(), title:'Shadow '+agent.name+' on complex task',
+    gap_type:'oversight', urgency:isFrontier?'immediate':'this_week', regime:'C', format:'shadow_agent',
+    estimated_hours:2, can_do_alongside_work:true,
+    why_now:agent.name+' is at '+soph+' sophistication (fitness '+( agent.fitness*100).toFixed(0)+'%). It is now producing outputs in your domain you may not be able to fully evaluate.',
+    what_you_will_be_able_to_do:'Identify where the agent is confident vs uncertain, and when its output requires your verification.',
+    completion_indicator:'Can spot agent uncertainty signals in under 2 minutes.',
+    suggested_resources:['Pick 3 recent agent outputs','Review agent reasoning trace'],
+    replacement_risk: isFrontier ? 0.45 : 0.2, agent_id:agent.id, odoo_equivalent:'NO_EQUIVALENT — agent shadowing not in Odoo'
+  });
+
+  if (isFrontier) opps.push({
+    opportunity_id:'REP-'+Date.now(), title:'Judgment calibration — critical',
+    gap_type:'replacement', urgency:'immediate', regime:'A', format:'paired_task',
+    estimated_hours:6, can_do_alongside_work:false,
+    why_now:agent.name+' is at Frontier level. It\'s producing near-human quality outputs in your domain. Your ability to catch its errors is now a critical risk.',
+    what_you_will_be_able_to_do:'Evaluate agent output quality without running the task yourself. Build a personal evaluation rubric.',
+    completion_indicator:'Grade agent output to within 10% of expert panel rating.',
+    suggested_resources:['Create personal evaluation rubric','Blind comparison exercises'],
+    replacement_risk:0.48, agent_id:agent.id, odoo_equivalent:'NO_EQUIVALENT'
+  });
+
+  var sophLabel = soph + ' ' + agent.name;
+  return {
+    employee_id:'EMP-001', employee_name:name,
+    epoch:3, generated_at:new Date().toISOString().split('T')[0],
+    one_line_summary: isFrontier
+      ? 'Frontier-level AI in your domain. This plan focuses on judgment and oversight before the gap widens.'
+      : util < 35
+      ? 'You\'re consuming only '+util.toFixed(0)+'% of your token allocation. The org is paying for capability you haven\'t unlocked.'
+      : align < 0.55
+      ? 'Belief alignment at '+(align*100).toFixed(0)+'% — addressing divergence is the priority this epoch.'
+      : 'Working alongside '+agent.name+'. Plan focuses on gaps from its '+soph+' sophistication level.',
+    primary_theme:'Human-agent capability gap — '+sophLabel,
+    immediate_count: opps.filter(o=>o.urgency==='immediate').length,
+    this_week_count: opps.filter(o=>o.urgency==='this_week').length,
+    total_hours: opps.reduce((s,o)=>s+o.estimated_hours,0),
+    replacement_risk_score: Math.max(...opps.map(o=>o.replacement_risk||0), 0),
+    huang_learning_gap: Math.max(0, 50 - util),
+    payroll_link: util < 40 ? 'Token utilization '+util.toFixed(0)+'% — below Huang minimum 50%. Learning plan targets closing this gap.' : '',
+    opportunities: opps,
+  };
+}
+
+function renderPlan(plan) {
+  var urgencyColors = {immediate:'#E55A5A',this_week:'#E5B85A',this_month:'#5A9EE5',growth:'#7BCC5A'};
+  var regColors = {A:'#A07BE5',B:'#5A9EE5',C:'#7BCC5A'};
+  var fmtLabels = {shadow_agent:'Shadow agent',paired_task:'Paired task',reflection:'Reflection',workshop:'Workshop',self_study:'Self-study',mentorship:'Mentorship',experiment:'Experiment'};
+
+  var html = '';
+  html += '<div class="kpis" style="margin-bottom:1.25rem">' +
+    '<div class="kpi"><div class="kpi-n" style="color:#E55A5A">'+(plan.immediate_count||0)+'</div><div class="kpi-l">Immediate</div></div>' +
+    '<div class="kpi"><div class="kpi-n" style="color:#E5B85A">'+(plan.this_week_count||0)+'</div><div class="kpi-l">This week</div></div>' +
+    '<div class="kpi"><div class="kpi-n" style="color:#F0EDE4">'+(plan.opportunities||[]).length+'</div><div class="kpi-l">Total opps</div></div>' +
+    '<div class="kpi"><div class="kpi-n" style="color:#A07BE5">'+(plan.total_hours||0)+'h</div><div class="kpi-l">Hours</div></div>' +
+    '</div>';
+
+  if ((plan.replacement_risk_score||0) > 0.3) {
+    html += '<div class="risk-high">⚠ Replacement risk: '+(plan.replacement_risk_score*100).toFixed(0)+'% — a Frontier agent is operating in your domain at higher quality than your current fitness score. This is the time to close the gap.</div>';
+  }
+
+  if (plan.payroll_link) {
+    html += '<div class="demo-note" style="margin-bottom:1rem">💰 Payroll link: '+plan.payroll_link+'</div>';
+  }
+
+  html += '<div class="card" style="margin-bottom:1.25rem"><div class="card-head"><span class="card-title">'+plan.employee_name+' — Epoch '+plan.epoch+' plan</span><span class="no-odoo">No Odoo static equiv.</span></div>' +
+    '<div class="card-body"><p style="font-size:14px;font-style:italic;color:rgba(240,237,228,.7);line-height:1.6;font-family:Fraunces,Georgia,serif">'+plan.one_line_summary+'</p></div></div>';
+
+  (plan.opportunities||[]).forEach(function(o) {
+    var uc = urgencyColors[o.urgency]||'#7BCC5A';
+    var rc = regColors[o.regime]||'#7BCC5A';
+    var riskBadge = (o.replacement_risk||0) > 0.3
+      ? '<span class="tag tag-red" style="margin-left:.375rem">Replacement risk '+(o.replacement_risk*100).toFixed(0)+'%</span>'
+      : '';
+    html += '<div class="learn-card" style="border-left-color:'+uc+'">' +
+      '<div class="learn-head">' +
+        '<span class="learn-title">'+o.title+riskBadge+'</span>' +
+        '<div style="display:flex;gap:.375rem;flex-wrap:wrap;flex-shrink:0">' +
+          '<span class="tag" style="background:'+uc+'22;color:'+uc+'">'+o.urgency.replace(/_/g,' ')+'</span>' +
+          '<span class="tag" style="background:'+rc+'22;color:'+rc+'">Regime '+o.regime+'</span>' +
+          '<span class="tag tag-purple">'+( fmtLabels[o.format]||o.format)+'</span>' +
+          (o.odoo_equivalent==='NO_EQUIVALENT'?'<span class="no-odoo">No Odoo equiv.</span>':'') +
+        '</div>' +
+      '</div>' +
+      '<div class="learn-body">' +
+        '<div class="learn-why"><strong>Why now: </strong>'+o.why_now+'</div>' +
+        '<div class="learn-what"><strong style="color:rgba(240,237,228,.35)">What you will be able to do: </strong>'+o.what_you_will_be_able_to_do+'</div>' +
+        '<div class="learn-meta">' +
+          '<span>⏱ '+o.estimated_hours+'h</span>' +
+          '<span>'+(o.can_do_alongside_work?'✓ Alongside work':'⏸ Dedicated time')+'</span>' +
+          '<span>✓ '+o.completion_indicator+'</span>' +
+        '</div>' +
+      '</div></div>';
+  });
+
+  document.getElementById('le-result').innerHTML = html;
+}
+
+// ── COST-BENEFIT ─────────────────────────────────────────────────────────────
+var FITNESS_BASELINE = 0.58;
+var FITNESS_MAX = 0.82;
+var B_STAR_PP = 120;
+var CURVE = [[0,.3,.005,0],[.3,1,.005,.015],[1,2,.025,.01],[2,5,.033,.005/3],[5,8,.038,-.003/3],[8,99,.04,0]];
+var K_ADJ = {2:.008,4:.019,6:.031};
+
+function computeFitness(r, k) {
+  var fit = FITNESS_BASELINE;
+  for (var c of CURVE) {
+    if (r >= c[0] && r < c[1]) { fit = FITNESS_BASELINE + c[2] + c[3]*(r-c[0]); break; }
+  }
+  fit += (K_ADJ[k]||.019) * Math.min(1,r);
+  return Math.min(FITNESS_MAX, Math.max(FITNESS_BASELINE, fit));
+}
+
+async function runCostBenefit() {
+  var humans = parseInt(document.getElementById('cb-humans').value)||25;
+  var agents = parseInt(document.getElementById('cb-agents').value)||8;
+  var budget = parseFloat(document.getElementById('cb-budget').value)||3000;
+  var salary = parseFloat(document.getElementById('cb-salary').value)||85000;
+  var k = parseInt(document.getElementById('cb-k').value)||4;
+  var result = null;
+
+  if (_online) {
+    result = await svcCall('cost_benefit','analyze','POST',{
+      headcount_human:humans, headcount_ai:agents,
+      monthly_token_budget:budget, avg_annual_salary:salary, nk_k_ruggedness:k
+    });
+  }
+  if (!result) result = computeCBLocal(humans, agents, budget, salary, k);
+  renderCB(result, humans, agents, budget, salary, k);
+}
+runCostBenefit();
+
+function computeCBLocal(humans, agents, budget, salary, k) {
+  var bstar = humans * B_STAR_PP;
+  var monthlySalary = salary / 12;
+  var huang = monthlySalary * 0.5 * humans;
+  var r = budget / Math.max(bstar, 1);
+  var fitness = computeFitness(r, k);
+  var fitDelta = fitness - FITNESS_BASELINE;
+  var roi = (fitDelta / FITNESS_BASELINE) / Math.max(r, .001);
+  var regime = r < .5 ? 'below_bstar' : r < 1 ? 'near_bstar' : r < 2 ? 'baseline' : r < 5 ? 'abundance' : 'saturation';
+
+  // Substitution curve
+  var total_units = humans + agents;
+  var sub_curve = [];
+  for (var i = 0; i <= 80; i += 5) {
+    var pct = i/100;
+    var nA = Math.round(total_units * pct);
+    var nH = total_units - nA;
+    var b_adj = budget * pct;
+    var bstar_adj = Math.max(1, nH) * B_STAR_PP;
+    var r_adj = b_adj / bstar_adj;
+    var f_adj = computeFitness(r_adj, k);
+    sub_curve.push({agent_pct:pct, fitness:f_adj, n_humans:nH, n_agents:nA});
+  }
+
+  // Scenarios
+  var optimal_budget = 3 * bstar;
+  var scenarios = [
+    {label:'Current', budget_mult:1},
+    {label:'50% increase', budget_mult:1.5},
+    {label:'Double', budget_mult:2},
+    {label:'Huang target', budget_mult: huang/Math.max(budget,1)},
+    {label:'Optimal (3×B*)', budget_mult: optimal_budget/Math.max(budget,1)},
+  ].map(function(s) {
+    var nb = budget * s.budget_mult;
+    var nr = nb / Math.max(bstar, 1);
+    var nf = computeFitness(nr, k);
+    return {label:s.label, monthly_budget:nb, r_ratio:nr, fitness:nf,
+            fitness_delta_vs_current: nf - fitness,
+            total_monthly_cost: humans*monthlySalary + nb,
+            incremental_cost: nb - budget};
+  });
+
+  return {b_star:bstar, huang_target:huang, r_ratio:r, org_fitness:fitness,
+          fitness_baseline:FITNESS_BASELINE, fitness_delta:fitDelta, roi:roi,
+          huang_ratio: budget/Math.max(huang,1), per_person_monthly:budget/Math.max(humans,1),
+          regime:regime, optimal_budget:optimal_budget,
+          substitution_curve:sub_curve, scenario_comparisons:scenarios,
+          months_to_bstar: budget < bstar ? Math.ceil((bstar-budget)/Math.max(budget*.1,1)) : null};
+}
+
+function renderCB(r, humans, agents, budget, salary, k) {
+  var rColor = r.r_ratio >= 1 ? '#7BCC5A' : r.r_ratio >= .5 ? '#E5B85A' : '#E55A5A';
+  var regLabels = {below_bstar:'⚠ Below B*',near_bstar:'Near B*',baseline:'Baseline',abundance:'Abundance',saturation:'Optimal'};
+
+  document.getElementById('cb-fitness').textContent = (r.org_fitness*100).toFixed(1)+'%';
+  document.getElementById('cb-fitness').style.color = r.org_fitness > .7 ? '#7BCC5A' : '#E5B85A';
+  document.getElementById('cb-bstar').textContent = '$'+Math.round(r.b_star).toLocaleString();
+  document.getElementById('cb-r').textContent = r.r_ratio.toFixed(2)+'×';
+  document.getElementById('cb-r').style.color = rColor;
+  document.getElementById('cb-roi').textContent = r.roi.toFixed(2)+'×';
+
+  // B* status card
+  var bColor = r.r_ratio >= 1 ? '#7BCC5A' : r.r_ratio >= .5 ? '#E5B85A' : '#E55A5A';
+  var bMsg = r.r_ratio >= 1 ? 'Positive fitness returns. AI investment is generating value above threshold.' :
+             r.r_ratio >= .5 ? 'Near threshold. Returns are marginal — close to B* but not clearing it.' :
+             'Below B*. AI spend is not generating positive org fitness returns. Increase budget or reduce headcount.';
+  document.getElementById('cb-status-body').innerHTML =
+    '<div style="font-size:13px;font-weight:600;color:'+bColor+';margin-bottom:.75rem">'+(regLabels[r.regime]||r.regime)+'</div>' +
+    '<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-bottom:.875rem">'+bMsg+'</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.875rem;font-size:12px">' +
+    '<div><div style="color:var(--sub)">Budget / B*</div><div style="font-weight:600;color:'+bColor+'">'+r.r_ratio.toFixed(2)+'× ($'+Math.round(budget).toLocaleString()+' / $'+Math.round(r.b_star).toLocaleString()+')</div></div>' +
+    '<div><div style="color:var(--sub)">Huang benchmark</div><div style="font-weight:600;color:var(--purple)">$'+Math.round(r.huang_target).toLocaleString()+'/mo ('+( r.huang_ratio*100).toFixed(0)+'% achieved)</div></div>' +
+    '<div><div style="color:var(--sub)">Fitness delta</div><div style="font-weight:600;color:var(--green)">+'+(r.fitness_delta*100).toFixed(2)+'pp above baseline</div></div>' +
+    (r.months_to_bstar ? '<div><div style="color:var(--sub)">Months to B*</div><div style="font-weight:600;color:var(--amber)">~'+r.months_to_bstar+' months at 10%/mo growth</div></div>' : '') +
+    '</div>';
+
+  // Curve canvas
+  var canvas = document.getElementById('cb-curve');
+  var W = canvas.offsetWidth||600; canvas.width = W; canvas.height = 160;
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,W,160);
+  var sub = r.substitution_curve || [];
+  if (sub.length > 0) {
+    var fits = sub.map(function(s){return s.fitness;});
+    var minF = Math.min(...fits)*.99, maxF = Math.max(...fits)*1.002;
+    // Grid
+    ctx.strokeStyle='rgba(255,255,255,.04)'; ctx.lineWidth=1;
+    for (var g=0;g<4;g++){var gy=20+g*32;ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
+    // Line
+    ctx.beginPath(); ctx.strokeStyle='rgba(123,204,90,.8)'; ctx.lineWidth=2;
+    sub.forEach(function(s,i){
+      var x=(i/(sub.length-1))*W, y=140-((s.fitness-minF)/(maxF-minF))*110;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    // Current marker
+    var currentPct = agents/(humans+agents)||0;
+    var ci = Math.round(currentPct/0.8*(sub.length-1));
+    if (ci < sub.length) {
+      var cx=(ci/(sub.length-1))*W, cy=140-((sub[ci].fitness-minF)/(maxF-minF))*110;
+      ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2);
+      ctx.fillStyle='#7BCC5A'; ctx.fill();
+      ctx.fillStyle='rgba(240,237,228,.6)'; ctx.font='10px Space Grotesk,sans-serif';
+      ctx.fillText('current',cx+7,cy-3);
+    }
+    // B* line
+    var bBudgetPct = r.b_star / Math.max(budget,1);
+    var bx = Math.min(W, bBudgetPct * W * 0.8);
+    ctx.strokeStyle='rgba(229,184,90,.4)'; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(bx,0); ctx.lineTo(bx,140); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(229,184,90,.6)'; ctx.font='9px Space Grotesk,sans-serif'; ctx.fillText('B*',bx+3,12);
+    // X labels
+    ctx.fillStyle='rgba(255,255,255,.25)';
+    ['0%','20%','40%','60%','80%'].forEach(function(l,i){ctx.fillText(l,i*(W/4)-8,155);});
+    ctx.fillText('Agent fraction →',W/2-35,155);
+  }
+
+  // Scenarios
+  var bestFitness = Math.max(...(r.scenario_comparisons||[]).map(s=>s.fitness));
+  var scenHtml = '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Scenario</th><th>Budget/mo</th><th>B×/B*</th><th>Fitness</th><th>Δ vs current</th><th>Total cost/mo</th></tr></thead><tbody>' +
+    (r.scenario_comparisons||[]).map(function(s,i){
+      var isBest = s.fitness === bestFitness && i > 0;
+      var fitColor = s.fitness_delta_vs_current > 0.02 ? '#7BCC5A' : s.fitness_delta_vs_current < -0.01 ? '#E55A5A' : 'var(--sub)';
+      var rowStyle = i===0 ? 'opacity:.6' : isBest ? 'background:rgba(123,204,90,.05);border-left:3px solid var(--green)' : '';
+      return '<tr style="'+rowStyle+'"><td style="font-weight:600">'+(i===0?'<strong>'+s.label+'</strong>':s.label+(isBest?' <span class="tag tag-green">Best ROI</span>':''))+'</td>' +
+        '<td>$'+Math.round(s.monthly_budget).toLocaleString()+'</td>' +
+        '<td>'+(s.r_ratio).toFixed(2)+'×</td>' +
+        '<td style="font-weight:600;color:'+fitColor+'">'+(s.fitness*100).toFixed(1)+'%</td>' +
+        '<td style="color:'+fitColor+'">'+(s.fitness_delta_vs_current>0?'+':'')+( s.fitness_delta_vs_current*100).toFixed(2)+'pp</td>' +
+        '<td>$'+Math.round(s.total_monthly_cost).toLocaleString()+'</td></tr>';
+    }).join('') + '</tbody></table></div>';
+  document.getElementById('cb-scenarios').innerHTML = scenHtml;
+  updateCrossMod();
+}
+
+function updateCrossMod() {
+  var el = document.getElementById('cb-cross-module');
+  if (!el) return;
+  var parts = [];
+  if (_payrollResult) {
+    parts.push('<div style="font-size:12px;color:var(--sub);margin-bottom:.5rem"><strong style="color:var(--green)">↔ Payroll:</strong> '+
+      _payrollResult.employee_name+' — token utilization '+( _payrollResult.token_utilization_pct||0).toFixed(1)+'%. '+
+      (_payrollResult.b_star_status||'')+'</div>');
+  }
+  if (_learningResult) {
+    parts.push('<div style="font-size:12px;color:var(--sub);margin-bottom:.5rem"><strong style="color:var(--green)">↔ Learning:</strong> '+
+      _learningResult.employee_name+' — '+_learningResult.immediate_count+' immediate opportunities. '+
+      (_learningResult.payroll_link||'')+'</div>');
+  }
+  if (parts.length === 0) {
+    el.innerHTML = '<p style="font-size:12px;color:var(--sub);line-height:1.7">Run the Payroll and Learning tabs — their results will appear here and feed into scenario planning.</p>';
+  } else {
+    el.innerHTML = parts.join('') + '<p style="font-size:11px;color:var(--sub);margin-top:.5rem">These signals are connected: low token utilization in payroll → triggers learning plan → learning plan drives capability → higher utilization → better cost-benefit position.</p>';
+  }
+}
+</script>
+</body>
+</html>

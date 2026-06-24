@@ -1,0 +1,15 @@
+{
+  "name": "tessera-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright demo-rehearsal suite for the Tessera HCM platform",
+  "scripts": {
+    "rehearse": "playwright test",
+    "rehearse:headed": "playwright test --headed",
+    "report": "playwright show-report",
+    "trace": "playwright show-trace"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
+}

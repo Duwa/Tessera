@@ -1,0 +1,430 @@
+# Tessera v2 — Full HCM Platform
+# Rival to Odoo HCM + eLearning + Payroll
+# Run: docker-compose up --build → http://localhost
+
+services:
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports: ["80:80"]
+    depends_on: [gateway]
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  gateway:
+    build: ./gateway
+    ports: ["8000:8000"]
+    environment:
+      COST_BENEFIT_URL: http://cost-benefit:8001
+      PAYROLL_URL: http://payroll:8002
+      LEARNING_URL: http://learning:8003
+      TWIN_URL: http://twin:8004
+      PEOPLE_URL: http://people:8005
+      EXPENSES_URL: http://expenses:8006
+      ONBOARDING_URL: http://onboarding:8007
+      GOVERNANCE_URL: http://governance:8008
+      INTAKE_URL:         http://intake:8009
+      TRACE_URL:          http://trace:8010
+      AGENT_FACTORY_URL:  http://agent-factory:8011
+      IDENTITY_URL:       http://identity:8012
+      ITSM_URL:           http://itsm:8013
+      WORKOS_URL:         http://workos:8014
+      NOTIFICATIONS_URL:  http://notifications:8015
+      AUDIT_URL:            http://audit:8016
+      TIME_ATTENDANCE_URL:  http://time-attendance:8017
+      BENEFITS_URL:         http://benefits:8018
+      RECRUITING_URL:       http://recruiting:8019
+      PERFORMANCE_URL:      http://performance:8020
+      SUCCESSION_URL:       http://succession:8021
+      COMPENSATION_URL:     http://compensation:8022
+      ABSENCE_URL:          http://absence:8023
+      WORKFORCE_PLANNING_URL: http://workforce-planning:8024
+      FINANCE_URL:          http://finance:8025
+      KNOWLEDGE_URL:        http://knowledge:8026
+      SERVICE_CATALOG_URL:  http://service-catalog:8027
+    depends_on: [cost-benefit, payroll, learning, twin, people, expenses, onboarding, governance, intake, trace, agent-factory, identity, itsm, workos, notifications, audit, time-attendance, benefits, recruiting, performance, succession, compensation, absence, workforce-planning, finance, knowledge, service-catalog]
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  cost-benefit:
+    build: ./services/cost_benefit
+    ports: ["8001:8001"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_costbenefit
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  payroll:
+    build: ./services/payroll
+    ports: ["8002:8002"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_payroll
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  learning:
+    build: ./services/learning
+    ports: ["8003:8003"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_learning
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  twin:
+    build: ./services/twin
+    ports: ["8004:8004"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_twin
+      PEOPLE_URL: http://people:8005
+      PERFORMANCE_URL: http://performance:8020
+      TIME_ATTENDANCE_URL: http://time-attendance:8017
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  people:
+    build: ./services/people
+    ports: ["8005:8005"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_people
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  expenses:
+    build: ./services/expenses
+    ports: ["8006:8006"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_expenses
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  onboarding:
+    build: ./services/onboarding
+    ports: ["8007:8007"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_onboarding
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  governance:
+    build: ./services/governance
+    ports: ["8008:8008"]
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      TWIN_URL: http://twin:8004
+    depends_on:
+      redis:
+        condition: service_healthy
+      twin:
+        condition: service_started
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  intake:
+    build: ./services/intake
+    ports: ["8009:8009"]
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      TRACE_URL: http://trace:8010
+    depends_on: [trace]
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  agent-factory:
+    build: ./services/agent_factory
+    ports: ["8011:8011"]
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      TRACE_URL: http://trace:8010
+    depends_on: [trace]
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  identity:
+    build: ./services/identity
+    ports: ["8012:8012"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_identity
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-prod-use-32-random-bytes}
+      TRACE_URL: http://trace:8010
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      trace:
+        condition: service_started
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  itsm:
+    build: ./services/itsm
+    ports: ["8013:8013"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_itsm
+      TRACE_URL: http://trace:8010
+    depends_on:
+      postgres:
+        condition: service_healthy
+      trace:
+        condition: service_started
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  workos:
+    build: ./services/workos
+    ports: ["8014:8014"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_workos
+      IDENTITY_URL: http://identity:8012
+      TRACE_URL:    http://trace:8010
+      BASE_URL:     http://workos:8014
+    depends_on:
+      postgres:
+        condition: service_healthy
+      trace:
+        condition: service_started
+      identity:
+        condition: service_started
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  notifications:
+    build: ./services/notifications
+    ports: ["8015:8015"]
+    environment:
+      DATABASE_URL:  postgresql://tessera:tessera@postgres:5432/tessera_notifications
+      SMTP_HOST:     ${SMTP_HOST:-localhost}
+      SMTP_PORT:     ${SMTP_PORT:-587}
+      SMTP_USER:     ${SMTP_USER:-}
+      SMTP_PASS:     ${SMTP_PASS:-}
+      SMTP_FROM:     ${SMTP_FROM:-noreply@tessera.local}
+      SMTP_TLS:      ${SMTP_TLS:-false}
+      SMTP_ENABLED:  ${SMTP_ENABLED:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  audit:
+    build: ./services/audit
+    ports: ["8016:8016"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_audit
+      DEFAULT_RETENTION_DAYS: "365"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  time-attendance:
+    build: ./services/time_attendance
+    ports: ["8017:8017"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_timeattendance
+      TWIN_URL: http://twin:8004
+    depends_on:
+      postgres:
+        condition: service_healthy
+      twin:
+        condition: service_started
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  benefits:
+    build: ./services/benefits
+    ports: ["8018:8018"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_benefits
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  recruiting:
+    build: ./services/recruiting
+    ports: ["8019:8019"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_recruiting
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  performance:
+    build: ./services/performance
+    ports: ["8020:8020"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_performance
+      TIME_ATTENDANCE_URL: http://time-attendance:8017
+    depends_on:
+      postgres:
+        condition: service_healthy
+      time-attendance:
+        condition: service_started
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  succession:
+    build: ./services/succession
+    ports: ["8021:8021"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_succession
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  compensation:
+    build: ./services/compensation
+    ports: ["8022:8022"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_compensation
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  absence:
+    build: ./services/absence
+    ports: ["8023:8023"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_absence
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  workforce-planning:
+    build: ./services/workforce_planning
+    ports: ["8024:8024"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_workforce
+      TWIN_URL: http://twin:8004
+    depends_on:
+      postgres:
+        condition: service_healthy
+      twin:
+        condition: service_started
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  finance:
+    build: ./services/finance
+    ports: ["8025:8025"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_finance
+      TWIN_URL: http://twin:8004
+    depends_on:
+      postgres:
+        condition: service_healthy
+      twin:
+        condition: service_started
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  knowledge:
+    build: ./services/knowledge
+    ports: ["8026:8026"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_knowledge
+      TICKET_DEFLECTION_VALUE: "22.0"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  service-catalog:
+    build: ./services/service_catalog
+    ports: ["8027:8027"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_catalog
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  trace:
+    build: ./services/trace
+    ports: ["8010:8010"]
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: tessera
+      POSTGRES_PASSWORD: tessera
+      POSTGRES_DB: tessera
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports: ["5432:5432"]
+    networks: [tessera-net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tessera -d tessera"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    networks: [tessera-net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+networks:
+  tessera-net:
+    driver: bridge
+
+volumes:
+  postgres-data:
