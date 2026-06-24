@@ -3545,12 +3545,276 @@ async function checkHealth() {
 }
 
 
+// ─── ONBOARDING WIZARD ───────────────────────────────────────────────────
+
+const WIZARD_KEY = 'tessera_wizard_done';
+
+const WIZARD_STEPS = [
+  {
+    id: 'welcome',
+    icon: '◈',
+    title: 'Welcome to Tessera',
+    subtitle: 'Human and AI Capital Management',
+    body: `<p style="color:var(--muted);line-height:1.7;font-size:14px">
+      Tessera is the first platform to measure what actually matters in the AI era —
+      <strong style="color:var(--text)">Human Alignment Value (HAV)</strong>.
+    </p>
+    <div style="margin:1.25rem 0;padding:1rem 1.25rem;background:var(--panel2);border-radius:10px;border:1px solid var(--green-line)">
+      <div style="font-size:11px;color:var(--faint);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">The core formula</div>
+      <div style="font-family:monospace;font-size:15px;color:var(--green);letter-spacing:.02em">HAV = 0.50×NPF + 0.30×SRQ + 0.20×OC</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-top:.875rem">
+        <div style="font-size:11px;color:var(--muted)"><strong style="color:var(--text)">NPF</strong><br>Non-procedural work fraction</div>
+        <div style="font-size:11px;color:var(--muted)"><strong style="color:var(--text)">SRQ</strong><br>Service resolution quality</div>
+        <div style="font-size:11px;color:var(--muted)"><strong style="color:var(--text)">OC</strong><br>Org coherence contribution</div>
+      </div>
+    </div>
+    <p style="color:var(--muted);font-size:13px">This replaces Workday's man-hours, ServiceNow's ticket counts, and Jira's story points — all under one hood.</p>`,
+    cta: 'Get started',
+    skip: 'I\'ll explore on my own',
+  },
+  {
+    id: 'import',
+    icon: '⇡',
+    title: 'Connect your data',
+    subtitle: 'Step 1 of 4',
+    body: `<p style="color:var(--muted);margin-bottom:1rem;font-size:14px">How does your org track people today?</p>
+    <div id="wiz-source-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem">
+      ${[
+        {id:'workday', icon:'▣', label:'Workday', desc:'Export Workers + Performance report'},
+        {id:'bamboohr', icon:'◉', label:'BambooHR', desc:'Export Employees + Compensation'},
+        {id:'csv', icon:'≡', label:'CSV / Excel', desc:'Any spreadsheet with employee data'},
+        {id:'demo', icon:'◈', label:'Load demo data', desc:'10 employees · 60 sessions · instant'},
+      ].map(s => `<button onclick="wizSelectSource('${s.id}')" id="wiz-src-${s.id}"
+        style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:1rem;text-align:left;cursor:pointer;transition:.15s;color:var(--text)"
+        onmouseover="this.style.borderColor='var(--green-line)'" onmouseout="this.style.borderColor=document.getElementById('wiz-selected-source')==='${s.id}'?'var(--green)':'var(--line)'">
+        <div style="font-size:18px;margin-bottom:.4rem;opacity:.8">${s.icon}</div>
+        <div style="font-size:13px;font-weight:600">${s.label}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${s.desc}</div>
+      </button>`).join('')}
+    </div>
+    <div id="wiz-import-area" style="display:none"></div>`,
+    cta: 'Continue',
+    skip: 'Skip for now',
+  },
+  {
+    id: 'phi',
+    icon: 'φ',
+    title: 'Set your AI fraction target',
+    subtitle: 'Step 2 of 4',
+    body: `<p style="color:var(--muted);margin-bottom:1.25rem;font-size:14px">
+      φ* is the crossover threshold — the AI fraction above which standard management breaks down.
+      Based on your org's interconnectivity (K), Tessera recommends:
+    </p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:1.25rem">
+      ${[
+        {k:'≥6',phi:'0.25',label:'High K',hint:'Many interdependencies — crossover hits early'},
+        {k:'4',phi:'0.32',label:'Medium K',hint:'Most orgs — good balance of autonomy and coherence'},
+        {k:'≤2',phi:'0.44',label:'Low K',hint:'Few interdependencies — more AI is safe'},
+      ].map(o => `<button onclick="wizSelectK(this,'${o.phi}')"
+        style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:1rem;text-align:left;cursor:pointer;transition:.15s;color:var(--text)"
+        onmouseover="this.style.borderColor='var(--blue)'" onmouseout="">
+        <div style="font-size:22px;font-family:var(--fh);color:var(--blue);margin-bottom:.4rem">φ*=${o.phi}</div>
+        <div style="font-size:12px;font-weight:600">K ${o.k}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">${o.hint}</div>
+      </button>`).join('')}
+    </div>
+    <div style="background:var(--panel2);border-radius:8px;padding:.875rem;border:1px solid var(--line)">
+      <div style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem">Your φ* selection</div>
+      <div id="wiz-phi-display" style="font-size:24px;font-family:var(--fh);color:var(--blue)">0.32 <span style="font-size:14px;color:var(--muted);font-family:var(--fb)">(K=4, recommended)</span></div>
+    </div>
+    <input type="hidden" id="wiz-phi-val" value="0.32"/>`,
+    cta: 'Continue',
+    skip: null,
+  },
+  {
+    id: 'values',
+    icon: '◎',
+    title: 'Identify your Values Custodians',
+    subtitle: 'Step 3 of 4',
+    body: `<p style="color:var(--muted);margin-bottom:1.25rem;font-size:14px">
+      Values Custodians are the humans whose judgment keeps AI belief drift in check.
+      They are automatically identified when HAV ≥ 0.70 AND NPF ≥ 0.65.
+    </p>
+    <div style="background:var(--panel2);border-radius:10px;border:1px solid var(--green-line);padding:1.25rem;margin-bottom:1rem">
+      <div style="font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem;font-weight:600">What Tessera does automatically</div>
+      ${[
+        'Flags VCs in every HR decision — absence, departure, role change',
+        'Requires coverage assignment before a VC can go on leave',
+        'Raises a critical signal if a VC is at retention risk',
+        'Blocks AI deployment that would drop VC count below safe threshold',
+      ].map(t => `<div style="display:flex;gap:.75rem;align-items:flex-start;margin-bottom:.6rem">
+        <span style="color:var(--green);font-size:14px;flex-shrink:0">◆</span>
+        <span style="font-size:13px;color:var(--muted)">${t}</span>
+      </div>`).join('')}
+    </div>
+    <div style="background:rgba(229,80,74,.08);border:1px solid rgba(229,80,74,.2);border-radius:8px;padding:.875rem">
+      <span style="color:var(--red);font-size:13px;font-weight:500">Never let a Values Custodian leave without understanding what knowledge they carry.</span>
+    </div>`,
+    cta: 'Continue',
+    skip: null,
+  },
+  {
+    id: 'done',
+    icon: '◈',
+    title: 'You\'re ready',
+    subtitle: 'Step 4 of 4',
+    body: `<p style="color:var(--muted);margin-bottom:1.25rem;font-size:14px">Your Tessera workspace is set up. Here's what to check first:</p>
+    <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.5rem">
+      ${[
+        {icon:'◈', nav:'dashboard', label:'HAV Overview', desc:'Your org\'s HAV distribution and Values Custodians'},
+        {icon:'◉', nav:'signals', label:'Signal Feed', desc:'Critical alerts — VC at risk, φ approaching crossover'},
+        {icon:'◐', nav:'twin', label:'Digital Twin', desc:'φ trajectory, governance stage, belief drift'},
+        {icon:'⊟', nav:'workforce', label:'Workforce Planning', desc:'Hire human vs deploy AI — powered by V_net math'},
+      ].map(r => `<button onclick="wizGoTo('${r.nav}')"
+        style="display:flex;align-items:center;gap:1rem;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:.875rem 1rem;text-align:left;cursor:pointer;transition:.15s;color:var(--text);width:100%"
+        onmouseover="this.style.borderColor='var(--green-line)'" onmouseout="this.style.borderColor='var(--line)'">
+        <span style="font-size:18px;opacity:.7;flex-shrink:0">${r.icon}</span>
+        <div>
+          <div style="font-size:13px;font-weight:600">${r.label}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:1px">${r.desc}</div>
+        </div>
+        <span style="margin-left:auto;color:var(--faint);font-size:14px">›</span>
+      </button>`).join('')}
+    </div>`,
+    cta: 'Open Tessera',
+    skip: null,
+  }
+];
+
+let _wizStep = 0;
+let _wizSource = null;
+
+function wizSelectSource(src) {
+  _wizSource = src;
+  document.querySelectorAll('[id^="wiz-src-"]').forEach(b => {
+    b.style.borderColor = 'var(--line)';
+    b.style.background = 'var(--panel2)';
+  });
+  const btn = document.getElementById('wiz-src-' + src);
+  if (btn) { btn.style.borderColor = 'var(--green)'; btn.style.background = 'var(--green-d)'; }
+
+  const area = document.getElementById('wiz-import-area');
+  if (!area) return;
+  if (src === 'demo') {
+    area.style.display = 'none';
+  } else {
+    area.style.display = 'block';
+    area.innerHTML = `<div style="background:var(--panel2);border-radius:8px;padding:.875rem;border:1px solid var(--line);font-size:12px;color:var(--muted)">
+      After clicking Continue, go to <strong style="color:var(--text)">Import Data</strong> in the sidebar to paste your ${src === 'workday' ? 'Workday' : src === 'bamboohr' ? 'BambooHR' : 'CSV'} export.
+      Full field mapping guide: <a href="docs/onboarding.md" style="color:var(--green);text-decoration:none">docs/onboarding.md</a>
+    </div>`;
+  }
+}
+
+function wizSelectK(btn, phi) {
+  document.querySelectorAll('#wiz-step-phi button[onclick^="wizSelectK"]').forEach(b => {
+    b.style.borderColor = 'var(--line)'; b.style.background = 'var(--panel2)';
+  });
+  btn.style.borderColor = 'var(--blue)'; btn.style.background = 'rgba(74,142,229,.1)';
+  document.getElementById('wiz-phi-val').value = phi;
+  const kLabels = {'0.25':'K≥6, high interconnectivity','0.32':'K=4, recommended','0.44':'K≤2, low interconnectivity'};
+  document.getElementById('wiz-phi-display').innerHTML =
+    `${phi} <span style="font-size:14px;color:var(--muted);font-family:var(--fb)">(${kLabels[phi]})</span>`;
+}
+
+function wizGoTo(view) {
+  closeWizard();
+  loadView(view);
+  nav(view);
+}
+
+function wizRender() {
+  const s = WIZARD_STEPS[_wizStep];
+  const overlay = document.getElementById('wiz-overlay');
+  if (!overlay) return;
+  const pct = Math.round((_wizStep / (WIZARD_STEPS.length - 1)) * 100);
+
+  overlay.innerHTML = `
+    <div id="wiz-card" style="background:var(--panel);border:1px solid var(--line2);border-radius:16px;width:100%;max-width:560px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.6)">
+      <!-- progress bar -->
+      <div style="height:3px;background:var(--line2)">
+        <div style="height:100%;width:${pct}%;background:var(--green);transition:width .4s"></div>
+      </div>
+      <!-- header -->
+      <div style="padding:2rem 2rem 1rem;border-bottom:1px solid var(--line2)">
+        <div style="display:flex;align-items:center;gap:.875rem;margin-bottom:.875rem">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--green-d);border:1px solid var(--green-line);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--green)">${s.icon}</div>
+          <div>
+            <div style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.12em;font-weight:600">${s.subtitle}</div>
+            <div style="font-size:20px;font-family:var(--fh);font-weight:400;color:var(--text);margin-top:1px">${s.title}</div>
+          </div>
+        </div>
+      </div>
+      <!-- body -->
+      <div id="wiz-step-${s.id}" style="padding:1.5rem 2rem">${s.body}</div>
+      <!-- footer -->
+      <div style="padding:1rem 2rem 1.5rem;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line2)">
+        <div style="display:flex;gap:6px">
+          ${WIZARD_STEPS.map((_,i) => `<div style="width:${i===_wizStep?18:6}px;height:6px;border-radius:3px;background:${i===_wizStep?'var(--green)':i<_wizStep?'rgba(111,207,74,.35)':'var(--line)'};transition:.3s"></div>`).join('')}
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem">
+          ${s.skip ? `<button onclick="wizSkip()" style="background:none;border:none;color:var(--faint);font-size:12px;cursor:pointer;font-family:var(--fb);padding:6px 10px">${s.skip}</button>` : ''}
+          ${_wizStep > 0 ? `<button onclick="wizBack()" class="btn btn-outline">← Back</button>` : ''}
+          <button onclick="wizNext()" class="btn btn-green" id="wiz-cta">${s.cta}</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function wizNext() {
+  const s = WIZARD_STEPS[_wizStep];
+
+  if (s.id === 'import' && _wizSource === 'demo') {
+    const btn = document.getElementById('wiz-cta');
+    if (btn) { btn.disabled = true; btn.textContent = 'Seeding…'; }
+    try {
+      await fetch('/demo/seed');
+    } catch(e) {}
+    if (btn) { btn.disabled = false; }
+  }
+
+  if (s.id === 'done') { closeWizard(); return; }
+  _wizStep = Math.min(_wizStep + 1, WIZARD_STEPS.length - 1);
+  wizRender();
+}
+
+function wizBack() {
+  _wizStep = Math.max(0, _wizStep - 1);
+  wizRender();
+}
+
+function wizSkip() {
+  closeWizard();
+}
+
+function closeWizard() {
+  localStorage.setItem(WIZARD_KEY, '1');
+  const overlay = document.getElementById('wiz-overlay');
+  if (overlay) {
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity .3s';
+    setTimeout(() => overlay.remove(), 300);
+  }
+}
+
+function showWizard() {
+  if (localStorage.getItem(WIZARD_KEY)) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'wiz-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:1000;background:rgba(5,5,5,.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;transition:opacity .3s';
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => { overlay.style.opacity = '1'; });
+  wizRender();
+}
+
 // ─── INIT ────────────────────────────────────────────────────────────────
 checkHealth();
 loadView('dashboard');
 setInterval(checkHealth, 30000);
 // Preload signals so badge appears immediately
 setTimeout(() => loadSignals(true), 1500);
+// Show onboarding wizard for first-time users
+setTimeout(showWizard, 600);
 </script>
 </body>
 </html>
