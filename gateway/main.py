@@ -385,6 +385,93 @@ async def seed_demo(org_id: str = "demo-org"):
             ta_import.json().get("inserted", 0) if ta_import.status_code == 201 else 0
         )
 
+        # 13. Seed Market360 AI agent lifecycle registry
+        af_url = SERVICES["agent-factory"]
+        m360_agents = [
+            # Customers department
+            {
+                "org_id": "market360", "name": "CustomerIQ-01",
+                "description": "Classifies inbound customer requests and routes to the right team",
+                "department": "customers", "pipeline": "request-classification",
+                "framework": "langgraph", "phi_contribution": 0.015,
+                "tasks_automated": ["classify inbound request", "extract intent", "route to team"],
+                "daily_runs": 420, "value_per_run": 4.50, "oversight_human": "maya.chen@demo.com",
+                "onboarded_by": "priya.sharma@demo.com",
+            },
+            {
+                "org_id": "market360", "name": "ChurnGuard-01",
+                "description": "Predicts churn risk from CRM signals and triggers retention playbook",
+                "department": "customers", "pipeline": "churn-prediction",
+                "framework": "custom", "phi_contribution": 0.012,
+                "tasks_automated": ["score churn risk", "generate retention offer", "log to CRM"],
+                "daily_runs": 180, "value_per_run": 12.00, "oversight_human": "james.okonkwo@demo.com",
+                "onboarded_by": "maya.chen@demo.com",
+            },
+            # Sales department
+            {
+                "org_id": "market360", "name": "LeadScorer-01",
+                "description": "Scores inbound leads from web forms and assigns to sales reps",
+                "department": "sales", "pipeline": "lead-scoring",
+                "framework": "custom", "phi_contribution": 0.018,
+                "tasks_automated": ["score lead", "enrich from LinkedIn", "assign to rep", "log activity"],
+                "daily_runs": 300, "value_per_run": 8.00, "oversight_human": "sofia.reyes@demo.com",
+                "onboarded_by": "priya.sharma@demo.com",
+            },
+            {
+                "org_id": "market360", "name": "ProposalBot-01",
+                "description": "Generates first-draft sales proposals from deal context",
+                "department": "sales", "pipeline": "proposal-generation",
+                "framework": "crewai", "phi_contribution": 0.014,
+                "tasks_automated": ["extract deal context", "generate proposal draft", "attach pricing"],
+                "daily_runs": 45, "value_per_run": 35.00, "oversight_human": "alex.mercer@demo.com",
+                "onboarded_by": "sofia.reyes@demo.com",
+            },
+            # Planning department
+            {
+                "org_id": "market360", "name": "DemandPlanner-01",
+                "description": "Forecasts demand signals from sales data + external feeds",
+                "department": "planning", "pipeline": "demand-forecasting",
+                "framework": "autogen", "phi_contribution": 0.020,
+                "tasks_automated": ["aggregate sales signals", "run forecast model", "generate report"],
+                "daily_runs": 12, "value_per_run": 85.00, "oversight_human": "priya.sharma@demo.com",
+                "onboarded_by": "james.okonkwo@demo.com",
+            },
+            {
+                "org_id": "market360", "name": "BudgetAlert-01",
+                "description": "Monitors spend vs plan and raises alerts when thresholds breach",
+                "department": "planning", "pipeline": "budget-monitoring",
+                "framework": "custom", "phi_contribution": 0.008,
+                "tasks_automated": ["check spend vs plan", "compute variance", "trigger alert if >5%"],
+                "daily_runs": 96, "value_per_run": 3.00, "oversight_human": "maya.chen@demo.com",
+                "onboarded_by": "priya.sharma@demo.com",
+            },
+            # Fulfillment department
+            {
+                "org_id": "market360", "name": "OrderRouter-01",
+                "description": "Routes orders to the optimal warehouse based on stock and geo",
+                "department": "fulfillment", "pipeline": "order-routing",
+                "framework": "langgraph", "phi_contribution": 0.022,
+                "tasks_automated": ["check stock levels", "select warehouse", "create pick ticket", "update ERP"],
+                "daily_runs": 650, "value_per_run": 2.20, "oversight_human": "alex.mercer@demo.com",
+                "onboarded_by": "sofia.reyes@demo.com",
+            },
+            {
+                "org_id": "market360", "name": "DeliveryChaser-01",
+                "description": "Monitors delivery status and proactively notifies customers of delays",
+                "department": "fulfillment", "pipeline": "delivery-monitoring",
+                "framework": "custom", "phi_contribution": 0.010,
+                "tasks_automated": ["poll carrier API", "detect delay", "draft customer notification", "log event"],
+                "daily_runs": 240, "value_per_run": 1.80, "oversight_human": "james.okonkwo@demo.com",
+                "onboarded_by": "alex.mercer@demo.com",
+            },
+        ]
+        m360_seeded = 0
+        for ag in m360_agents:
+            ar = await client.post(f"{af_url}/agents/onboard", json=ag)
+            if ar.status_code == 201:
+                m360_seeded += 1
+        results["market360_agents"] = m360_seeded
+
     results.update({"org_phi": round(phi, 4), "r_ap": round(r_ap, 4), "org_id": org_id})
     return {"status": "seeded", **results}
 

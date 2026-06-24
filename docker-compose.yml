@@ -161,7 +161,13 @@ services:
     environment:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       TRACE_URL: http://trace:8010
-    depends_on: [trace]
+      PEOPLE_URL: http://people:8005
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_agents
+    depends_on:
+      postgres:
+        condition: service_healthy
+      trace:
+        condition: service_started
     networks: [tessera-net]
     restart: unless-stopped
 

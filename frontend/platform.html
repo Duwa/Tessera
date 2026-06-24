@@ -227,6 +227,7 @@ html,body{height:100%;background:var(--void);color:var(--text);font-family:var(-
     <div class="sb-section">Operations</div>
     <ul class="sb-nav">
       <li class="sb-nav-item"><a href="#" onclick="nav('itsm')" id="nav-itsm"><span class="sb-icon">◉</span> ITSM</a></li>
+      <li class="sb-nav-item"><a href="#" onclick="nav('agents')" id="nav-agents"><span class="sb-icon">⟳</span> Agent Registry</a></li>
       <li class="sb-nav-item"><a href="#" onclick="nav('catalog')" id="nav-catalog"><span class="sb-icon">◻</span> Service Catalog</a></li>
       <li class="sb-nav-item"><a href="#" onclick="nav('knowledge')" id="nav-knowledge"><span class="sb-icon">◈</span> Knowledge</a></li>
     </ul>
@@ -1169,6 +1170,7 @@ async function loadView(view) {
     case 'import':         loadImport(); break;
     case 'itsm':           loadITSM(); break;
     case 'workforce':      loadWorkforce(); break;
+    case 'agents':         loadAgents(); break;
   }
 }
 
@@ -3544,6 +3546,437 @@ async function checkHealth() {
   }
 }
 
+
+// ─── AGENT REGISTRY ──────────────────────────────────────────────────────
+
+const AGENT_ORG = 'market360';
+const DEPT_META = {
+  customers:    { icon: '◎', color: 'var(--blue)',   label: 'Customers' },
+  sales:        { icon: '◈', color: 'var(--green)',  label: 'Sales' },
+  planning:     { icon: '◐', color: 'var(--amber)',  label: 'Planning' },
+  fulfillment:  { icon: '⊟', color: 'var(--purple)', label: 'Fulfillment' },
+};
+const STATUS_STYLE = {
+  active:   { color: 'var(--green)',  bg: 'var(--green-d)',  label: 'Active' },
+  retiring: { color: 'var(--amber)',  bg: 'var(--amber-d)',  label: 'Retiring' },
+  retired:  { color: 'var(--faint)',  bg: 'rgba(255,255,255,.04)', label: 'Retired' },
+  paused:   { color: 'var(--blue)',   bg: 'var(--blue-d)',   label: 'Paused' },
+};
+const FW_COLORS = {
+  langgraph: 'var(--blue)', crewai: 'var(--purple)', autogen: 'var(--amber)', custom: 'var(--faint)'
+};
+
+let _agentsActiveTab = 'all';
+let _retireAgentId = null;
+let _retireAgentName = '';
+let _retirePreview = null;
+
+async function loadAgents(tab) {
+  if (tab) _agentsActiveTab = tab;
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div style="padding:2rem">
+      <div class="ph">
+        <div class="ph-left">
+          <h1 style="font-family:var(--fh);font-size:26px;font-weight:400">Agent Registry</h1>
+          <p style="font-size:12px;color:var(--muted);margin-top:3px">Market360 — AI agent lifecycle: onboard · monitor · retire</p>
+        </div>
+        <div style="display:flex;gap:.75rem">
+          <button class="btn btn-outline" onclick="loadAgents()">↺ Refresh</button>
+          <button class="btn btn-green" onclick="openOnboardWizard()">+ Onboard Agent</button>
+        </div>
+      </div>
+      <div id="agents-body"><div style="color:var(--faint);font-size:13px">Loading…</div></div>
+    </div>
+    ${_agentOnboardModal()}
+    ${_agentRetireModal()}`;
+  await _renderAgents();
+}
+
+async function _renderAgents() {
+  const body = document.getElementById('agents-body');
+  let data;
+  try {
+    data = await GET(`/agent-factory/agents?org_id=${AGENT_ORG}`);
+  } catch(e) {
+    body.innerHTML = `<div style="color:var(--red);font-size:13px">Could not reach agent registry. Seed demo data first.</div>`;
+    return;
+  }
+
+  const agents = data.agents || [];
+  const phi = data.org_phi_from_agents ?? 0;
+  const phiStar = data.phi_star ?? 0.32;
+  const above = data.above_crossover;
+
+  // KPI strip
+  const kpis = [
+    { label: 'Total Agents', val: data.total ?? 0, sub: 'registered', color: '' },
+    { label: 'Active', val: data.active ?? 0, sub: 'running pipelines', color: 'green' },
+    { label: 'Retiring', val: data.retiring ?? 0, sub: 'in wind-down', color: data.retiring ? 'amber' : '' },
+    { label: 'φ from Agents', val: (phi * 100).toFixed(1) + '%', sub: `φ* = ${(phiStar * 100).toFixed(0)}%`, color: above ? 'red' : 'green' },
+  ];
+
+  let html = `<div class="kpi-grid" style="margin-bottom:1.5rem">
+    ${kpis.map(k => `<div class="kpi-card">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-val ${k.color}">${k.val}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>`).join('')}
+  </div>`;
+
+  // φ crossover warning
+  if (above) {
+    html += `<div style="background:rgba(229,80,74,.08);border:1px solid rgba(229,80,74,.2);border-radius:10px;padding:.875rem 1rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:.875rem">
+      <span style="font-size:18px;color:var(--red)">⚠</span>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--red)">φ above crossover (${(phi*100).toFixed(1)}% > φ*=${(phiStar*100).toFixed(0)}%)</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Standard management models are suboptimal. Values Custodian oversight is critical. Consider retiring low-value agents.</div>
+      </div>
+    </div>`;
+  } else {
+    const headroom = data.phi_headroom ?? (phiStar - phi);
+    html += `<div style="background:var(--green-d);border:1px solid var(--green-line);border-radius:10px;padding:.875rem 1rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:.875rem">
+      <span style="font-size:18px;color:var(--green)">◆</span>
+      <div style="font-size:13px;color:var(--muted)">φ headroom: <strong style="color:var(--green)">${(headroom*100).toFixed(1)}%</strong> below crossover. Safe to onboard ${Math.floor(headroom/0.012)} more agents before governance stage escalates.</div>
+    </div>`;
+  }
+
+  // Department summary cards
+  const depts = ['customers','sales','planning','fulfillment'];
+  html += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-radius:12px;overflow:hidden;margin-bottom:1.5rem">`;
+  for (const dept of depts) {
+    const dm = DEPT_META[dept] || { icon:'◎', color:'var(--faint)', label: dept };
+    const deptAgents = agents.filter(a => a.department === dept);
+    const active = deptAgents.filter(a => a.status === 'active');
+    const totalRuns = active.reduce((s, a) => s + (a.daily_runs || 0), 0);
+    const totalValue = active.reduce((s, a) => s + (a.daily_runs || 0) * (a.value_per_run || 0), 0);
+    html += `<div style="background:var(--panel);padding:1.25rem;cursor:pointer" onclick="filterDept('${dept}')">
+      <div style="font-size:18px;margin-bottom:.5rem;color:${dm.color}">${dm.icon}</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text)">${dm.label}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">${active.length} agent${active.length!==1?'s':''} active</div>
+      <div style="font-size:11px;color:var(--faint);margin-top:2px">${totalRuns.toLocaleString()} runs/day · $${totalValue.toFixed(0)}/day</div>
+    </div>`;
+  }
+  html += `</div>`;
+
+  // Tab bar
+  const tabs = [
+    { id: 'all', label: `All (${agents.length})` },
+    { id: 'active', label: `Active (${data.active ?? 0})` },
+    { id: 'retiring', label: `Retiring (${data.retiring ?? 0})` },
+    { id: 'retired', label: `Retired (${data.retired ?? 0})` },
+  ];
+  html += `<div style="display:flex;gap:0;border-bottom:1px solid var(--line);margin-bottom:1.25rem">
+    ${tabs.map(t => `<button onclick="loadAgents('${t.id}')"
+      style="background:none;border:none;padding:.625rem 1rem;font-size:13px;cursor:pointer;font-family:var(--fb);
+      color:${_agentsActiveTab===t.id?'var(--green)':'var(--muted)'};
+      border-bottom:2px solid ${_agentsActiveTab===t.id?'var(--green)':'transparent'};transition:.15s">${t.label}</button>`).join('')}
+  </div>`;
+
+  // Filter
+  const filtered = _agentsActiveTab === 'all' ? agents : agents.filter(a => a.status === _agentsActiveTab);
+
+  if (filtered.length === 0) {
+    html += `<div style="text-align:center;padding:3rem;color:var(--faint);font-size:13px">No agents in this status. <button onclick="openOnboardWizard()" style="background:none;border:none;color:var(--green);cursor:pointer;font-family:var(--fb);font-size:13px">Onboard your first agent →</button></div>`;
+  } else {
+    html += `<div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="border-bottom:1px solid var(--line)">
+          ${['Agent','Department','Pipeline','Framework','Runs/day','Value/mo','Status','φ','Actions'].map(h =>
+            `<th style="padding:.75rem 1rem;text-align:left;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)">${h}</th>`
+          ).join('')}
+        </tr></thead>
+        <tbody>
+          ${filtered.map(a => _agentRow(a)).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  }
+
+  body.innerHTML = html;
+}
+
+function filterDept(dept) {
+  _agentsActiveTab = 'active';
+  loadAgents('active');
+}
+
+function _agentRow(a) {
+  const dm   = DEPT_META[a.department] || { icon:'◎', color:'var(--faint)', label: a.department };
+  const ss   = STATUS_STYLE[a.status]  || STATUS_STYLE.active;
+  const fwc  = FW_COLORS[a.framework]  || 'var(--faint)';
+  const monthly = ((a.daily_runs || 0) * (a.value_per_run || 0) * 30).toFixed(0);
+  const tasks = (a.tasks_automated || []).slice(0, 2).join(', ') + ((a.tasks_automated||[]).length > 2 ? '…' : '');
+  const age = a.onboarded_at ? Math.floor((Date.now() - new Date(a.onboarded_at)) / 86400000) : '?';
+
+  return `<tr style="border-bottom:1px solid var(--line2);transition:.1s" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background=''">
+    <td style="padding:.75rem 1rem">
+      <div style="font-size:13px;font-weight:500;color:var(--text)">${a.name}</div>
+      <div style="font-size:11px;color:var(--faint);margin-top:2px">${tasks || a.description?.slice(0,50) || '—'}</div>
+    </td>
+    <td style="padding:.75rem 1rem">
+      <span style="color:${dm.color};font-size:13px">${dm.icon} ${dm.label}</span>
+    </td>
+    <td style="padding:.75rem 1rem;font-size:12px;color:var(--muted)">${a.pipeline}</td>
+    <td style="padding:.75rem 1rem">
+      <span style="font-size:11px;color:${fwc};font-weight:500;text-transform:uppercase;letter-spacing:.06em">${a.framework}</span>
+    </td>
+    <td style="padding:.75rem 1rem;font-size:13px;color:var(--text)">${(a.daily_runs||0).toLocaleString()}</td>
+    <td style="padding:.75rem 1rem;font-size:13px;color:var(--green)">$${Number(monthly).toLocaleString()}</td>
+    <td style="padding:.75rem 1rem">
+      <span style="background:${ss.bg};color:${ss.color};font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px">${ss.label}</span>
+    </td>
+    <td style="padding:.75rem 1rem;font-size:12px;color:var(--muted)">${((a.phi_contribution||0)*100).toFixed(1)}%</td>
+    <td style="padding:.75rem 1rem">
+      ${a.status === 'active' ? `<button onclick="openRetireWizard('${a.id}','${a.name.replace(/'/g,"\\'")}','${a.department}')"
+        style="background:none;border:1px solid rgba(229,80,74,.3);color:var(--red);font-size:11px;padding:4px 10px;border-radius:5px;cursor:pointer;font-family:var(--fb)">Retire</button>` : ''}
+      ${a.status === 'retired' ? `<span style="font-size:11px;color:var(--faint)">${age}d ago</span>` : ''}
+      ${a.status === 'paused' ? `<button onclick="resumeAgent('${a.id}')"
+        style="background:none;border:1px solid var(--green-line);color:var(--green);font-size:11px;padding:4px 10px;border-radius:5px;cursor:pointer;font-family:var(--fb)">Resume</button>` : ''}
+    </td>
+  </tr>`;
+}
+
+function _agentOnboardModal() {
+  return `<div id="onboard-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(5,5,5,.8);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:1.5rem">
+    <div style="background:var(--panel);border:1px solid var(--line);border-radius:14px;width:100%;max-width:540px;overflow:hidden">
+      <div style="padding:1.5rem 1.5rem 1rem;border-bottom:1px solid var(--line2)">
+        <div style="font-family:var(--fh);font-size:20px">Onboard New Agent</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">Register an AI agent into the Market360 lifecycle registry</div>
+      </div>
+      <div style="padding:1.5rem;display:flex;flex-direction:column;gap:.875rem;max-height:70vh;overflow-y:auto">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div>
+            <label style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:.3rem">Agent Name *</label>
+            <input id="ob-name" placeholder="LeadScorer-02" style="width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:13px"/>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:.3rem">Department *</label>
+            <select id="ob-dept" style="width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:13px">
+              <option value="customers">Customers</option>
+              <option value="sales">Sales</option>
+              <option value="planning">Planning</option>
+              <option value="fulfillment">Fulfillment</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div>
+            <label style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:.3rem">Pipeline *</label>
+            <input id="ob-pipeline" placeholder="lead-scoring" style="width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:13px"/>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:.3rem">Framework</label>
+            <select id="ob-fw" style="width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:13px">
+              <option value="langgraph">LangGraph</option>
+              <option value="crewai">CrewAI</option>
+              <option value="autogen">AutoGen</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:.3rem">Description</label>
+          <input id="ob-desc" placeholder="What does this agent do?" style="width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:13px"/>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:.3rem">Tasks Automated (comma-separated)</label>
+          <input id="ob-tasks" placeholder="classify request, route to team, log activity" style="width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:13px"/>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem">
+          <div>
+            <label style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:.3rem">Daily Runs</label>
+            <input id="ob-runs" type="number" placeholder="150" style="width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:13px"/>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:.3rem">Value/Run ($)</label>
+            <input id="ob-value" type="number" placeholder="5.00" style="width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:13px"/>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:.3rem">φ Contribution</label>
+            <input id="ob-phi" type="number" step="0.001" placeholder="0.012" style="width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:13px"/>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:.3rem">VC Oversight (email)</label>
+          <input id="ob-vc" placeholder="maya.chen@demo.com" style="width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:13px"/>
+        </div>
+        <div id="ob-phi-preview" style="background:var(--panel2);border-radius:8px;padding:.875rem;border:1px solid var(--line);font-size:12px;color:var(--muted);display:none"></div>
+      </div>
+      <div style="padding:1rem 1.5rem 1.25rem;border-top:1px solid var(--line2);display:flex;justify-content:flex-end;gap:.75rem">
+        <button onclick="closeOnboardModal()" class="btn btn-outline">Cancel</button>
+        <button onclick="submitOnboard()" class="btn btn-green" id="ob-submit-btn">Onboard Agent</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function _agentRetireModal() {
+  return `<div id="retire-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(5,5,5,.8);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:1.5rem">
+    <div style="background:var(--panel);border:1px solid var(--line);border-radius:14px;width:100%;max-width:520px;overflow:hidden">
+      <div style="padding:1.5rem 1.5rem 1rem;border-bottom:1px solid var(--line2)">
+        <div style="font-family:var(--fh);font-size:20px;color:var(--red)">Retire Agent</div>
+        <div id="retire-agent-name" style="font-size:12px;color:var(--muted);margin-top:3px">Loading…</div>
+      </div>
+      <div id="retire-preview-panel" style="padding:1rem 1.5rem;border-bottom:1px solid var(--line2)">
+        <div style="color:var(--faint);font-size:12px">Loading retirement preview…</div>
+      </div>
+      <div style="padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:.875rem">
+        <div>
+          <label style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:.3rem">Retirement Reason *</label>
+          <select id="ret-reason-sel" style="width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:13px">
+            <option value="replaced-by-upgraded-agent">Replaced by upgraded agent</option>
+            <option value="pipeline-decommissioned">Pipeline decommissioned</option>
+            <option value="cost-optimisation">Cost optimisation</option>
+            <option value="governance-phi-reduction">Governance — φ reduction</option>
+            <option value="human-takeover">Human takeover — HAV role identified</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:.3rem">Handoff Plan *</label>
+          <textarea id="ret-handoff" rows="2" placeholder="Who or what takes over? e.g. 'LeadScorer-03 (upgraded)' or 'James Okonkwo will handle manually'" style="width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:13px;resize:vertical"></textarea>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:.3rem">Knowledge Captured</label>
+          <textarea id="ret-knowledge" rows="2" placeholder="Key learnings, edge cases, config notes for the successor…" style="width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:8px 10px;color:var(--text);font-family:var(--fb);font-size:13px;resize:vertical"></textarea>
+        </div>
+      </div>
+      <div style="padding:1rem 1.5rem 1.25rem;border-top:1px solid var(--line2);display:flex;justify-content:flex-end;gap:.75rem">
+        <button onclick="closeRetireModal()" class="btn btn-outline">Cancel</button>
+        <button onclick="submitRetire()" style="background:var(--red);color:#fff;border:1px solid var(--red)" class="btn" id="ret-submit-btn">Confirm Retirement</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function openOnboardModal() {
+  const m = document.getElementById('onboard-modal');
+  if (m) { m.style.display = 'flex'; }
+}
+function closeOnboardModal() {
+  const m = document.getElementById('onboard-modal');
+  if (m) { m.style.display = 'none'; }
+}
+function openOnboardWizard() { openOnboardModal(); }
+
+async function openRetireWizard(agentId, agentName, dept) {
+  _retireAgentId = agentId;
+  _retireAgentName = agentName;
+  const m = document.getElementById('retire-modal');
+  if (!m) return;
+  document.getElementById('retire-agent-name').textContent = `${agentName} · ${dept}`;
+  m.style.display = 'flex';
+
+  // Load preview
+  const panel = document.getElementById('retire-preview-panel');
+  panel.innerHTML = `<div style="color:var(--faint);font-size:12px">Calculating φ impact…</div>`;
+  try {
+    const p = await GET(`/agent-factory/agents/${agentId}/retirement-preview`);
+    _retirePreview = p;
+    const drop = ((p.phi_delta || 0) * 100).toFixed(1);
+    const govImprove = p.governance_improvement;
+    panel.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:.75rem">
+        <div style="background:var(--panel2);border-radius:8px;padding:.75rem;border:1px solid var(--line)">
+          <div style="font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.25rem">φ Before</div>
+          <div style="font-size:18px;font-family:var(--fh);color:${p.currently_above_crossover?'var(--red)':'var(--green)'}">${(p.phi_current*100).toFixed(1)}%</div>
+        </div>
+        <div style="background:var(--panel2);border-radius:8px;padding:.75rem;border:1px solid var(--line)">
+          <div style="font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.25rem">φ After</div>
+          <div style="font-size:18px;font-family:var(--fh);color:${p.will_be_above_crossover?'var(--red)':'var(--green)'}">${(p.phi_after_retirement*100).toFixed(1)}%</div>
+        </div>
+        <div style="background:var(--panel2);border-radius:8px;padding:.75rem;border:1px solid var(--line)">
+          <div style="font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.25rem">Value Impact</div>
+          <div style="font-size:18px;font-family:var(--fh);color:var(--amber)">-$${Number(p.estimated_value_impact||0).toLocaleString()}/mo</div>
+        </div>
+      </div>
+      ${govImprove ? `<div style="background:var(--green-d);border:1px solid var(--green-line);border-radius:8px;padding:.625rem .875rem;font-size:12px;color:var(--green);margin-bottom:.5rem">◆ Retiring this agent brings φ below φ* — governance stage will improve.</div>` : ''}
+      ${p.hire_human_recommended ? `<div style="background:rgba(229,168,58,.08);border:1px solid rgba(229,168,58,.2);border-radius:8px;padding:.625rem .875rem;font-size:12px;color:var(--amber)">⚠ ${p.tasks_requiring_human_judgment.length} task(s) require human judgment — hire before retiring: ${p.tasks_requiring_human_judgment.join(', ')}</div>` : `<div style="font-size:12px;color:var(--muted)">All ${p.tasks_requiring_coverage.length} task(s) are procedural — safe to hand off to another agent.</div>`}`;
+  } catch(e) {
+    panel.innerHTML = `<div style="font-size:12px;color:var(--faint)">Preview unavailable.</div>`;
+  }
+}
+function closeRetireModal() {
+  const m = document.getElementById('retire-modal');
+  if (m) { m.style.display = 'none'; }
+  _retireAgentId = null; _retirePreview = null;
+}
+
+async function submitOnboard() {
+  const name     = document.getElementById('ob-name')?.value?.trim();
+  const dept     = document.getElementById('ob-dept')?.value;
+  const pipeline = document.getElementById('ob-pipeline')?.value?.trim();
+  if (!name || !pipeline) { toast('Agent name and pipeline are required'); return; }
+
+  const fw    = document.getElementById('ob-fw')?.value || 'custom';
+  const desc  = document.getElementById('ob-desc')?.value?.trim() || '';
+  const tasks = (document.getElementById('ob-tasks')?.value || '').split(',').map(t => t.trim()).filter(Boolean);
+  const runs  = parseInt(document.getElementById('ob-runs')?.value) || 0;
+  const val   = parseFloat(document.getElementById('ob-value')?.value) || 0;
+  const phi   = parseFloat(document.getElementById('ob-phi')?.value) || 0.01;
+  const vc    = document.getElementById('ob-vc')?.value?.trim() || '';
+
+  const btn = document.getElementById('ob-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Onboarding…'; }
+
+  try {
+    const r = await fetch('/api/v1/agent-factory/agents/onboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        org_id: AGENT_ORG, name, description: desc, department: dept,
+        pipeline, framework: fw, phi_contribution: phi,
+        tasks_automated: tasks, daily_runs: runs, value_per_run: val,
+        oversight_human: vc || undefined, onboarded_by: 'platform-user',
+      }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Failed');
+    toast(`Agent '${name}' onboarded · φ: ${(d.org_phi_before*100).toFixed(1)}% → ${(d.org_phi_after*100).toFixed(1)}%`);
+    closeOnboardModal();
+    await loadAgents(_agentsActiveTab);
+  } catch(e) {
+    toast(`Error: ${e.message}`);
+    if (btn) { btn.disabled = false; btn.textContent = 'Onboard Agent'; }
+  }
+}
+
+async function submitRetire() {
+  if (!_retireAgentId) return;
+  const reason   = document.getElementById('ret-reason-sel')?.value || 'other';
+  const handoff  = document.getElementById('ret-handoff')?.value?.trim();
+  const knowledge = document.getElementById('ret-knowledge')?.value?.trim() || '';
+  if (!handoff) { toast('Handoff plan is required'); return; }
+
+  const btn = document.getElementById('ret-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Retiring…'; }
+
+  try {
+    const r = await fetch(`/api/v1/agent-factory/agents/${_retireAgentId}/retire`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ retirement_reason: reason, handoff_plan: handoff, knowledge_captured: knowledge, retired_by: 'platform-user' }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Failed');
+    toast(`'${_retireAgentName}' retired · φ: ${(d.org_phi_before*100).toFixed(1)}% → ${(d.org_phi_after*100).toFixed(1)}%`);
+    closeRetireModal();
+    await loadAgents(_agentsActiveTab);
+  } catch(e) {
+    toast(`Error: ${e.message}`);
+    if (btn) { btn.disabled = false; btn.textContent = 'Confirm Retirement'; }
+  }
+}
+
+async function resumeAgent(agentId) {
+  try {
+    const r = await fetch(`/api/v1/agent-factory/agents/${agentId}/resume?actor=platform-user`, { method: 'PATCH' });
+    if (!r.ok) throw new Error((await r.json()).detail);
+    toast('Agent resumed');
+    await loadAgents(_agentsActiveTab);
+  } catch(e) { toast(`Error: ${e.message}`); }
+}
 
 // ─── ONBOARDING WIZARD ───────────────────────────────────────────────────
 
