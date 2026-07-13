@@ -510,6 +510,40 @@ html,body{height:100%;background:var(--void);color:var(--text);font-family:var(-
 .ai-role-btn:hover  { background:rgba(111,207,74,.18) }
 .ai-role-btn:disabled { opacity:.4; cursor:not-allowed }
 .ai-role-btn.done   { background:rgba(111,207,74,.2); border-color:var(--green) }
+
+/* ── SOLO HUB ── */
+.solo-phi-num{font-family:var(--fh);font-size:42px;font-weight:400;line-height:1;transition:color .25s;font-variant-numeric:tabular-nums}
+.solo-phi-sub{font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-top:4px}
+.solo-chips{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.solo-chip{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.solo-chip-num{font-family:var(--fh);font-size:22px;font-weight:400;font-variant-numeric:tabular-nums;line-height:1;transition:color .25s}
+.solo-chip-lbl{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-top:3px}
+.solo-chip-note{font-size:10px;color:var(--muted);margin-top:2px;transition:color .25s}
+.solo-narr{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:12px;padding:20px 24px;transition:border-left-color .3s}
+.solo-narr.warn{border-left-color:var(--amber)}
+.solo-narr.good{border-left-color:var(--green)}
+.solo-eyebrow{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--red);margin-bottom:10px;transition:color .25s}
+.solo-narr.warn .solo-eyebrow{color:var(--amber)}
+.solo-narr.good .solo-eyebrow{color:var(--green)}
+.solo-headline{font-family:var(--fh);font-size:20px;line-height:1.5;text-wrap:balance;margin-bottom:8px}
+.solo-body{font-size:12px;color:var(--muted);line-height:1.65}
+.solo-signals{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.solo-sig{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.solo-sig-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:99px;margin-bottom:9px}
+.solo-cascade-track{display:flex;align-items:flex-start}
+.solo-casc-step{flex:1;position:relative}
+.solo-casc-step:not(:last-child)::after{content:'';position:absolute;top:13px;left:28px;right:0;height:1px;background:var(--line)}
+.solo-casc-node{width:27px;height:27px;border-radius:50%;border:2px solid var(--line);background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--faint);position:relative;z-index:1;transition:border-color .3s,color .3s,background .3s}
+.solo-casc-node.watch{border-color:var(--amber);color:var(--amber);background:var(--amber-d)}
+.solo-casc-node.fired{border-color:var(--red);color:var(--red);background:var(--red-d)}
+.solo-casc-lbl{font-size:11px;color:var(--text);margin-top:8px;line-height:1.4}
+.solo-casc-when{font-size:10px;color:var(--muted);margin-top:2px}
+.solo-casc-when.now{color:var(--red);font-weight:600}
+.solo-intv{background:var(--blue-d);border:1px solid rgba(74,142,229,.25);border-radius:12px;padding:18px 22px;display:flex;gap:16px;align-items:flex-start}
+.solo-intv-icon{width:36px;height:36px;border-radius:8px;flex-shrink:0;background:rgba(74,142,229,.15);border:1px solid rgba(74,142,229,.3);display:flex;align-items:center;justify-content:center;font-size:16px}
+.solo-intv-lbl{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin-bottom:6px}
+.solo-intv-text{font-family:var(--fh);font-size:15px;line-height:1.55}
+.solo-intv-sub{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6}
 </style>
 </head>
 <body>
@@ -541,6 +575,11 @@ html,body{height:100%;background:var(--void);color:var(--text);font-family:var(-
     <ul class="sb-nav" style="padding-top:.5rem">
       <li class="sb-nav-item"><a href="#" onclick="nav('my-feed')" id="nav-my-feed"><span class="sb-icon">◆</span> My Feed <span id="feed-badge" style="display:none;margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px"></span></a></li>
       <li class="sb-nav-item"><a href="#" onclick="nav('signals')" id="nav-signals"><span class="sb-icon">◉</span> Signal Feed <span id="sb-signal-badge" style="display:none;margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px"></span></a></li>
+    </ul>
+
+    <div class="sb-section">Solo Hub</div>
+    <ul class="sb-nav">
+      <li class="sb-nav-item"><a href="#" onclick="nav('solo-hub')" id="nav-solo-hub"><span class="sb-icon">◑</span> My Dashboard</a></li>
     </ul>
 
     <div class="sb-section">Command</div>
@@ -1601,6 +1640,7 @@ html,body{height:100%;background:var(--void);color:var(--text);font-family:var(-
       </div>
     </div>
 
+    <div class="view" id="view-solo-hub"></div>
     <div class="view" id="view-itsm"></div>
     <div class="view" id="view-agents"></div>
     <div class="view" id="view-workforce"></div>
@@ -2036,6 +2076,7 @@ async function loadView(view) {
     case 'learning':       loadLearning(); break;
     case 'import':         loadImport(); break;
     case 'itsm':           loadITSM(); break;
+    case 'solo-hub':       loadSoloHub(); break;
     case 'workforce':      loadWorkforce(); break;
     case 'agents':         loadAgents(); break;
     case 'goals':               loadGoals(); break;
@@ -4346,6 +4387,312 @@ async function loadWorkforce() {
     <div id="wf-eval-result" style="margin-top:.75rem"></div>
   </div>
 </div>`;
+}
+
+// ─── SOLO HUB ──────────────────────────────────────────────────────────────
+function loadSoloHub() {
+  const el = document.getElementById('view-solo-hub');
+  el.innerHTML = `
+<div class="ph">
+  <div class="ph-left">
+    <h1>Solo Hub <span style="font-family:var(--fb);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--green);color:#050505;padding:2px 9px;border-radius:3px;vertical-align:middle;margin-left:8px">Solopreneur Mode</span></h1>
+    <p>You are your organization. Your HAV is your brand.</p>
+  </div>
+  <div style="font-size:11px;color:var(--faint);background:var(--panel);border:1px solid var(--line);padding:4px 12px;border-radius:6px">Rajendra Duwarahan · automotonAI</div>
+</div>
+
+<div class="panel full-col" style="padding:18px 22px">
+  <div style="display:flex;align-items:center;gap:20px">
+    <div>
+      <div class="solo-phi-num" id="sh-phi-num">0.38</div>
+      <div class="solo-phi-sub">φ — AI Fraction</div>
+    </div>
+    <div style="flex:1">
+      <input type="range" class="phi-slider" id="sh-phi-slider" min="10" max="78" value="38" step="1">
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--faint);margin-top:6px">
+        <span>0.10 healthy</span><span>φ* 0.32 threshold</span><span>0.55 critical</span><span>0.78 track-2</span>
+      </div>
+    </div>
+  </div>
+  <div class="solo-chips">
+    <div class="solo-chip"><div class="solo-chip-num" id="sh-hav">0.68</div><div class="solo-chip-lbl">HAV</div><div class="solo-chip-note" id="sh-hav-note">↓ Custodian needs 0.70</div></div>
+    <div class="solo-chip"><div class="solo-chip-num" id="sh-npf">0.58</div><div class="solo-chip-lbl">NPF</div><div class="solo-chip-note" id="sh-npf-note">↓ 0.013/wk · cliff at 0.52</div></div>
+    <div class="solo-chip"><div class="solo-chip-num" id="sh-nudge">0.17</div><div class="solo-chip-lbl">Nudge Accel</div><div class="solo-chip-note">(1−NPF)×φ / epoch</div></div>
+    <div class="solo-chip"><div class="solo-chip-num" id="sh-ap">7.6%</div><div class="solo-chip-lbl">Alignment Premium</div><div class="solo-chip-note" id="sh-ap-note">Your human-value surcharge</div></div>
+  </div>
+</div>
+
+<div class="solo-narr full-col" id="sh-narr">
+  <div class="solo-eyebrow" id="sh-eyebrow">Failure Trajectory — Active</div>
+  <div class="solo-headline" id="sh-headline"></div>
+  <div class="solo-body" id="sh-body"></div>
+</div>
+
+<div class="panel full-col" style="padding:18px 22px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div class="field-label">NPF Trajectory — 6 Weeks Past · 12 Weeks Projected</div>
+    <div style="display:flex;gap:14px;font-size:10px;color:var(--faint)">
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue);margin-right:4px"></span>Actual</span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);opacity:.8;margin-right:4px"></span>Projected</span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:4px"></span>Client cliff 0.52</span>
+    </div>
+  </div>
+  <canvas id="sh-canvas" style="display:block;width:100%;height:130px"></canvas>
+</div>
+
+<div class="solo-signals full-col">
+  <div class="solo-sig">
+    <div class="solo-sig-badge badge below">Active</div>
+    <div style="font-size:12px;color:var(--text);line-height:1.45;margin-bottom:5px">Content engagement dropped 23% in 6 weeks</div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.5">NPF erosion is visible. Readers sense the template behind your voice.</div>
+  </div>
+  <div class="solo-sig">
+    <div class="solo-sig-badge" id="sh-s2badge">Watch</div>
+    <div style="font-size:12px;color:var(--text);line-height:1.45;margin-bottom:5px" id="sh-s2text">Strategy session bookings down 11%</div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.5" id="sh-s2detail">Your highest-HAV service. Clients hire judgment, not throughput.</div>
+  </div>
+  <div class="solo-sig">
+    <div class="solo-sig-badge" id="sh-s3badge">Watch</div>
+    <div style="font-size:12px;color:var(--text);line-height:1.45;margin-bottom:5px" id="sh-s3text">4 hrs/week managing AI tools</div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.5" id="sh-s3detail">Governance cost rising. At φ 0.45 it exceeds value recovered.</div>
+  </div>
+</div>
+
+<div class="panel full-col" style="padding:18px 22px">
+  <div class="field-label" style="margin-bottom:16px">Pathology Cascade — What Breaks Next</div>
+  <div class="solo-cascade-track">
+    <div class="solo-casc-step">
+      <div class="solo-casc-node fired" id="sh-cn1">1</div>
+      <div class="solo-casc-lbl">φ crosses φ*</div>
+      <div class="solo-casc-when now" id="sh-cw1">Now · φ 0.32</div>
+    </div>
+    <div class="solo-casc-step">
+      <div class="solo-casc-node watch" id="sh-cn2">2</div>
+      <div class="solo-casc-lbl">NPF below client cliff</div>
+      <div class="solo-casc-when" id="sh-cw2">~9 weeks</div>
+    </div>
+    <div class="solo-casc-step">
+      <div class="solo-casc-node" id="sh-cn3">3</div>
+      <div class="solo-casc-lbl">HAV below Custodian</div>
+      <div class="solo-casc-when" id="sh-cw3">~14 weeks</div>
+    </div>
+    <div class="solo-casc-step">
+      <div class="solo-casc-node" id="sh-cn4">4</div>
+      <div class="solo-casc-lbl">Brand perception loss</div>
+      <div class="solo-casc-when" id="sh-cw4">~18 weeks</div>
+    </div>
+    <div class="solo-casc-step">
+      <div class="solo-casc-node" id="sh-cn5">5</div>
+      <div class="solo-casc-lbl">Revenue impact</div>
+      <div class="solo-casc-when" id="sh-cw5">~26 weeks</div>
+    </div>
+  </div>
+</div>
+
+<div class="solo-intv full-col">
+  <div class="solo-intv-icon">→</div>
+  <div>
+    <div class="solo-intv-lbl">Intervention · This Week</div>
+    <div class="solo-intv-text" id="sh-intv-text"></div>
+    <div class="solo-intv-sub" id="sh-intv-sub"></div>
+  </div>
+</div>`;
+
+  // wire up slider
+  const slider = document.getElementById('sh-phi-slider');
+  slider.addEventListener('input', _soloUpdate);
+  _soloUpdate();
+}
+
+function _soloUpdate() {
+  const slider = document.getElementById('sh-phi-slider');
+  if (!slider) return;
+  const phi = slider.value / 100;
+
+  function clamp(v,lo,hi){ return Math.max(lo,Math.min(hi,v)); }
+  function lerp(a,b,t){ return a+(b-a)*t; }
+  function mthFromNow(weeks){
+    const d = new Date(2026,6,11);
+    d.setDate(d.getDate()+weeks*7);
+    return d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  }
+
+  const npf      = clamp(0.67-(phi-0.18)*0.42, 0.28, 0.73);
+  const hav      = clamp(0.77-(phi-0.18)*0.38, 0.38, 0.77);
+  const nudge    = (1-npf)*phi;
+  const ap       = phi<0.25 ? 5 : phi<0.50 ? lerp(5,15,(phi-0.25)/0.25) : lerp(15,25,(phi-0.50)/0.30);
+  const decl     = clamp((phi-0.18)*0.053, 0.001, 0.028);
+  const wkCliff  = npf>0.52 ? Math.max(1,Math.round((npf-0.52)/decl)) : 0;
+  const wkHAV    = hav>0.65 ? Math.max(1,Math.round((hav-0.65)/(decl*0.75))) : 0;
+
+  // φ color
+  const phiEl = document.getElementById('sh-phi-num');
+  phiEl.textContent = phi.toFixed(2);
+  phiEl.style.color = phi<0.32 ? 'var(--green)' : phi<0.50 ? 'var(--amber)' : 'var(--red)';
+
+  // chips
+  const havEl = document.getElementById('sh-hav');
+  havEl.textContent = hav.toFixed(2);
+  havEl.style.color = hav>=0.70 ? 'var(--green)' : hav>=0.60 ? 'var(--amber)' : 'var(--red)';
+  const havNote = document.getElementById('sh-hav-note');
+  havNote.textContent = hav>=0.70 ? '✓ Custodian threshold met' : hav>=0.60 ? `↓ ${(decl*0.75).toFixed(3)}/wk · needs 0.70` : '⚠ Anchor lost';
+  havNote.style.color = hav>=0.70 ? 'var(--green)' : hav>=0.60 ? 'var(--amber)' : 'var(--red)';
+
+  const npfEl = document.getElementById('sh-npf');
+  npfEl.textContent = npf.toFixed(2);
+  npfEl.style.color = npf>=0.60 ? 'var(--green)' : npf>=0.52 ? 'var(--amber)' : 'var(--red)';
+  const npfNote = document.getElementById('sh-npf-note');
+  npfNote.textContent = npf<0.52 ? '⚠ Below client cliff — active' : `↓ ${decl.toFixed(3)}/wk · cliff at 0.52`;
+  npfNote.style.color = npf<0.52 ? 'var(--red)' : npf<0.60 ? 'var(--amber)' : 'var(--muted)';
+
+  const nudgeEl = document.getElementById('sh-nudge');
+  nudgeEl.textContent = nudge.toFixed(2);
+  nudgeEl.style.color = nudge<0.10 ? 'var(--green)' : nudge<0.20 ? 'var(--amber)' : 'var(--red)';
+
+  document.getElementById('sh-ap').textContent = ap.toFixed(1)+'%';
+  document.getElementById('sh-ap-note').textContent = phi<0.32 ? 'Clients paying for judgment' : 'Rising as human scarcity grows';
+
+  // narrative
+  const narr = document.getElementById('sh-narr');
+  const ey   = document.getElementById('sh-eyebrow');
+  const hl   = document.getElementById('sh-headline');
+  const bd   = document.getElementById('sh-body');
+  if (phi<0.25) {
+    narr.className='solo-narr full-col good';
+    ey.textContent='Healthy Zone — No Active Cascade';
+    hl.innerHTML=`NPF stable at <span style="color:var(--green)">${npf.toFixed(2)}</span>. HAV <span style="color:var(--green)">${hav.toFixed(2)}</span> — above Custodian threshold. Your output is distinctly yours.`;
+    bd.textContent=`Nudge acceleration is low (${nudge.toFixed(2)}). Maintain at least one high-judgment role fully human each week to hold HAV above 0.70.`;
+  } else if (phi<0.32) {
+    narr.className='solo-narr full-col warn';
+    ey.textContent='Approaching Threshold — Monitor Now';
+    hl.innerHTML=`You're <span style="color:var(--amber)">${((0.32-phi)*100).toFixed(0)} points from φ*</span>. NPF declining at ${(decl*1000).toFixed(0)} pts/week. One new AI tool crosses the line.`;
+    bd.textContent=`HAV holding at ${hav.toFixed(2)}. Custodian status intact. This is the last safe observation point before nudge acceleration compounds.`;
+  } else if (phi<0.50) {
+    narr.className='solo-narr full-col';
+    ey.textContent='Failure Trajectory — Active';
+    hl.innerHTML=`NPF falling <span style="color:var(--red)">${(decl*1000).toFixed(0)} pts/week</span>. By <span style="color:var(--red)">${mthFromNow(wkCliff)}</span>, clients won't distinguish your output from a generic AI prompt.`;
+    bd.textContent=`You crossed φ* at 0.32. Nudge acceleration is ${nudge.toFixed(2)} per epoch. HAV is ${hav>=0.70?'still above':'below'} Custodian threshold (0.70). Stage 2 arrives in ~${wkCliff} weeks without intervention.`;
+  } else {
+    narr.className='solo-narr full-col';
+    ey.textContent='Critical — Cascade Accelerating';
+    hl.innerHTML=`NPF is <span style="color:var(--red)">${npf<0.52?'below the client cliff':'in freefall'}</span>. HAV ${hav<0.65?'<span style="color:var(--red)">below Custodian threshold — your anchor is gone</span>':'failing'}. Brand damage occurring now.`;
+    bd.textContent=`Nudge accel: ${nudge.toFixed(2)}/epoch. Track 2 onset probability at φ ${phi.toFixed(2)}: ~${Math.round(clamp(24+(phi-0.32)*380,24,93))}%. Every AI-assisted output accelerates drift until φ < 0.32.`;
+  }
+
+  // cascade nodes
+  const setNode = (id,whenId,state,when) => {
+    document.getElementById(id).className='solo-casc-node '+(state||'');
+    const w=document.getElementById(whenId);
+    if(w){ w.textContent=when; w.className='solo-casc-when'+(state==='fired'?' now':''); }
+  };
+  const cw1=document.getElementById('sh-cw1');
+  if(cw1){ cw1.textContent=phi>=0.32?'Now — active':'At φ 0.32'; cw1.className='solo-casc-when'+(phi>=0.32?' now':''); }
+  setNode('sh-cn2','sh-cw2', phi>=0.32?(npf<0.52?'fired':'watch'):'', npf<0.52?'Now — active':wkCliff>0?`~${wkCliff} weeks`:'Below φ*');
+  setNode('sh-cn3','sh-cw3', phi>=0.40?(hav<0.65?'fired':'watch'):'', hav<0.65?'Now — active':wkHAV>0?`~${wkHAV} weeks`:'After NPF cliff');
+  setNode('sh-cn4','sh-cw4', phi>=0.55?'watch':'', phi>=0.55?`~${Math.round(wkCliff*1.8)} weeks`:'After HAV loss');
+  setNode('sh-cn5','sh-cw5', phi>=0.68?'watch':'', phi>=0.55?`~${Math.round(wkCliff*2.8)} weeks`:'After brand loss');
+
+  // signals
+  if (phi>=0.50) {
+    document.getElementById('sh-s2badge').className='solo-sig-badge badge below'; document.getElementById('sh-s2badge').textContent='Critical';
+    document.getElementById('sh-s2text').textContent='Strategy session bookings down 28%';
+    document.getElementById('sh-s2detail').textContent='Clients are sensing the shift. Your highest-HAV work shows the fracture first.';
+    document.getElementById('sh-s3badge').className='solo-sig-badge badge below'; document.getElementById('sh-s3badge').textContent='Critical';
+    document.getElementById('sh-s3text').textContent='9+ hrs/week managing AI tools';
+    document.getElementById('sh-s3detail').textContent='Governance cost has crossed value recovered. You\'re paying to maintain the system eroding you.';
+  } else if (phi>=0.32) {
+    document.getElementById('sh-s2badge').className='solo-sig-badge badge meets'; document.getElementById('sh-s2badge').textContent='Watch';
+    document.getElementById('sh-s2text').textContent='Strategy session bookings down 11%';
+    document.getElementById('sh-s2detail').textContent='Your highest-HAV service. Clients hire judgment, not throughput.';
+    document.getElementById('sh-s3badge').className='solo-sig-badge badge meets'; document.getElementById('sh-s3badge').textContent='Watch';
+    document.getElementById('sh-s3text').textContent='4 hrs/week managing AI tools';
+    document.getElementById('sh-s3detail').textContent=`Governance cost rising. At φ 0.45 it exceeds value recovered.`;
+  } else {
+    document.getElementById('sh-s2badge').className='solo-sig-badge badge exceptional'; document.getElementById('sh-s2badge').textContent='OK';
+    document.getElementById('sh-s2text').textContent='Strategy session bookings stable';
+    document.getElementById('sh-s2detail').textContent='High-judgment work holding. HAV above Custodian threshold.';
+    document.getElementById('sh-s3badge').className='solo-sig-badge badge exceptional'; document.getElementById('sh-s3badge').textContent='OK';
+    document.getElementById('sh-s3text').textContent='2 hrs/week managing AI tools';
+    document.getElementById('sh-s3detail').textContent='Governance cost within range at this φ level.';
+  }
+
+  // intervention
+  const it=document.getElementById('sh-intv-text'), is=document.getElementById('sh-intv-sub');
+  if (phi<0.25) {
+    it.innerHTML='You\'re in the healthy zone. <span style="color:var(--blue);font-weight:700">Maintain one fully-human role</span> per week to keep HAV above 0.70.';
+    is.textContent='You can safely add one AI agent for a low-NPF task (formatting, scheduling) without breaching φ*.';
+  } else if (phi<0.32) {
+    it.innerHTML='Hold here. <span style="color:var(--blue);font-weight:700">Do not add new AI tools</span> until NPF recovers above 0.62. The next deployment crosses φ*.';
+    is.textContent='Identify which agent contributes least to output quality — that\'s your first to pause if NPF keeps falling.';
+  } else if (phi<0.50) {
+    it.innerHTML=`Pause <span style="color:var(--blue);font-weight:700">one AI writing tool</span> for client-facing content. Three weeks manual on that role returns HAV to 0.70.`;
+    is.innerHTML=`φ target: 0.32. Removing one agent gets you there. V<sub>net</sub> check: governance cost now exceeds delivery value at NPF ${npf.toFixed(2)}.`;
+  } else {
+    it.innerHTML=`<span style="color:var(--blue);font-weight:700">Stop adding AI tools immediately.</span> Remove any agent whose management cost exceeds 2 hrs/week.`;
+    is.textContent=`Priority: recover NPF above 0.58 before stage 3 (HAV loss). Once HAV < 0.65, recovery requires 6+ weeks of deliberate high-judgment work.`;
+  }
+
+  // chart
+  _soloChart(phi, npf, decl);
+}
+
+function _soloChart(phi, npfNow, decl) {
+  const canvas = document.getElementById('sh-canvas');
+  if (!canvas) return;
+  const pxR = window.devicePixelRatio || 1;
+  const W = canvas.parentElement.clientWidth - 44, H = 130;
+  canvas.width = W*pxR; canvas.height = H*pxR;
+  canvas.style.width = W+'px'; canvas.style.height = H+'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(pxR,pxR);
+
+  const pad={t:8,r:10,b:26,l:34};
+  const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
+  const MIN=0.28,MAX=0.75,PAST=6,PROJ=12,TOT=PAST+PROJ;
+  const xP=w=>pad.l+(w/TOT)*cw;
+  const yP=v=>pad.t+ch-((v-MIN)/(MAX-MIN))*ch;
+
+  ctx.clearRect(0,0,W,H);
+
+  // grid
+  [0.40,0.52,0.60,0.70].forEach(v=>{
+    ctx.beginPath();
+    ctx.strokeStyle=v===0.52?'rgba(229,80,74,.3)':'rgba(255,255,255,.05)';
+    ctx.lineWidth=1; ctx.setLineDash(v===0.52?[4,4]:[]);
+    ctx.moveTo(pad.l,yP(v)); ctx.lineTo(pad.l+cw,yP(v)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='rgba(242,240,232,.35)'; ctx.font='9px DM Sans,system-ui';
+    ctx.fillText(v.toFixed(2),2,yP(v)+3);
+  });
+  ctx.fillStyle='rgba(229,80,74,.6)'; ctx.font='9px DM Sans,system-ui';
+  ctx.fillText('client cliff',xP(TOT)-60,yP(0.52)-4);
+
+  // past line + fill
+  const npfStart = npfNow+decl*PAST;
+  const g=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
+  g.addColorStop(0,'rgba(74,142,229,.18)'); g.addColorStop(1,'rgba(74,142,229,.02)');
+  ctx.beginPath();
+  for(let i=0;i<=PAST;i++){ const v=Math.max(MIN,Math.min(MAX,npfStart-decl*i)); i===0?ctx.moveTo(xP(i),yP(v)):ctx.lineTo(xP(i),yP(v)); }
+  ctx.lineTo(xP(PAST),yP(MIN)); ctx.lineTo(xP(0),yP(MIN)); ctx.closePath();
+  ctx.fillStyle=g; ctx.fill();
+  ctx.beginPath(); ctx.strokeStyle='#4A8EE5'; ctx.lineWidth=2; ctx.setLineDash([]);
+  for(let i=0;i<=PAST;i++){ const v=Math.max(MIN,Math.min(MAX,npfStart-decl*i)); i===0?ctx.moveTo(xP(i),yP(v)):ctx.lineTo(xP(i),yP(v)); }
+  ctx.stroke();
+
+  // projected
+  const pDecl=phi>=0.32?decl:Math.max(0,decl-0.005);
+  ctx.beginPath(); ctx.strokeStyle=phi>=0.50?'#E5504A':'#E5A83A'; ctx.lineWidth=1.5; ctx.setLineDash([5,4]);
+  for(let i=0;i<=PROJ;i++){ const v=Math.max(MIN,Math.min(MAX,npfNow-pDecl*i)); i===0?ctx.moveTo(xP(PAST+i),yP(v)):ctx.lineTo(xP(PAST+i),yP(v)); }
+  ctx.stroke(); ctx.setLineDash([]);
+
+  // now line
+  ctx.beginPath(); ctx.strokeStyle='rgba(255,255,255,.1)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+  ctx.moveTo(xP(PAST),pad.t); ctx.lineTo(xP(PAST),H-pad.b); ctx.stroke(); ctx.setLineDash([]);
+
+  // x labels
+  ctx.fillStyle='rgba(242,240,232,.35)'; ctx.font='9px DM Sans,system-ui';
+  [['−6w',0],['−3w',3],['Now',6],['+3w',9],['+6w',12],['+12w',18]].forEach(([l,w])=>{
+    ctx.fillText(l,xP(w)-(l==='Now'?8:l.startsWith('+1')?12:9),H-4);
+  });
 }
 
 function runRoleDecision() {
