@@ -75,6 +75,242 @@ CREATE TABLE IF NOT EXISTS agent_lifecycle_events (
 CREATE INDEX IF NOT EXISTS idx_ale_agent ON agent_lifecycle_events(agent_id);
 """
 
+# ─── Blueprint Catalogue (shipped by Tessera, static) ────────────────────────
+_BLUEPRINTS: list[dict] = [
+    {
+        "id": "it.ticket-triage",
+        "name": "IT Ticket Triage",
+        "version": "1.3.0",
+        "category": "IT",
+        "icon": "◉",
+        "icon_color": "#4A8EE5",
+        "description": (
+            "Classifies incoming ITSM tickets, routes to the right team, and "
+            "auto-resolves Tier-1 issues (password resets, policy-bound access requests). "
+            "Escalates P1/P2 with a complete draft response attached for the human agent."
+        ),
+        "connectors_needed": ["itsm"],
+        "hipaa_safe": True,
+        "governance_wired": True,
+        "framework": "langgraph",
+        "department": "it",
+        "pipeline": "ticket-triage",
+        "phi_contribution": 0.03,
+        "tasks_automated": ["ticket classification", "tier-1 auto-resolution", "P1 escalation with draft"],
+        "daily_runs_estimate": 50,
+        "value_per_run": 12.0,
+        "roai_typical": 4.2,
+        "setup_time_minutes": 15,
+    },
+    {
+        "id": "it.access-request",
+        "name": "Access Request Processor",
+        "version": "1.1.0",
+        "category": "IT",
+        "icon": "◫",
+        "icon_color": "#4A8EE5",
+        "description": (
+            "Processes software and system access requests against your role-permission policy. "
+            "Auto-approves within policy, flags exceptions for IT manager review, "
+            "and provisions approved access via your ITSM connector."
+        ),
+        "connectors_needed": ["itsm", "hris"],
+        "hipaa_safe": True,
+        "governance_wired": True,
+        "framework": "langgraph",
+        "department": "it",
+        "pipeline": "access-provisioning",
+        "phi_contribution": 0.02,
+        "tasks_automated": ["policy lookup", "access approval", "provisioning trigger"],
+        "daily_runs_estimate": 20,
+        "value_per_run": 15.0,
+        "roai_typical": 3.8,
+        "setup_time_minutes": 20,
+    },
+    {
+        "id": "hr.leave-approver",
+        "name": "Leave Request Approver",
+        "version": "2.0.0",
+        "category": "HR",
+        "icon": "◎",
+        "icon_color": "#6FCF4A",
+        "description": (
+            "Receives leave requests, checks entitlement balance and blackout dates, "
+            "auto-approves routine requests, and flags overlap conflicts to the line manager. "
+            "Updates your HRIS automatically on approval."
+        ),
+        "connectors_needed": ["hris"],
+        "hipaa_safe": True,
+        "governance_wired": True,
+        "framework": "custom",
+        "department": "hr",
+        "pipeline": "leave-management",
+        "phi_contribution": 0.02,
+        "tasks_automated": ["entitlement check", "conflict detection", "auto-approval", "HRIS update"],
+        "daily_runs_estimate": 15,
+        "value_per_run": 18.0,
+        "roai_typical": 5.1,
+        "setup_time_minutes": 10,
+    },
+    {
+        "id": "hr.onboarding-coordinator",
+        "name": "Onboarding Coordinator",
+        "version": "1.4.0",
+        "category": "HR",
+        "icon": "◇",
+        "icon_color": "#6FCF4A",
+        "description": (
+            "Triggered by a new hire event in your HRIS. Runs the onboarding checklist: "
+            "prompts IT provisioning, assigns buddy, sends welcome email, "
+            "and tracks completion — escalating blocked items to the HR coordinator."
+        ),
+        "connectors_needed": ["hris", "itsm"],
+        "hipaa_safe": True,
+        "governance_wired": True,
+        "framework": "langgraph",
+        "department": "hr",
+        "pipeline": "onboarding",
+        "phi_contribution": 0.02,
+        "tasks_automated": ["IT provisioning trigger", "buddy assignment", "welcome email", "checklist tracking"],
+        "daily_runs_estimate": 3,
+        "value_per_run": 90.0,
+        "roai_typical": 6.4,
+        "setup_time_minutes": 25,
+    },
+    {
+        "id": "hr.benefits-advisor",
+        "name": "Benefits Advisor",
+        "version": "1.0.0",
+        "category": "HR",
+        "icon": "◆",
+        "icon_color": "#6FCF4A",
+        "description": (
+            "Answers employee benefits questions from your policy knowledge base. "
+            "Handles enrolment windows, plan comparisons, dependent changes, "
+            "and escalates complex cases to the benefits specialist with context pre-filled."
+        ),
+        "connectors_needed": ["knowledge"],
+        "hipaa_safe": True,
+        "governance_wired": True,
+        "framework": "custom",
+        "department": "hr",
+        "pipeline": "benefits-advisory",
+        "phi_contribution": 0.01,
+        "tasks_automated": ["benefits Q&A", "enrolment guidance", "escalation with context"],
+        "daily_runs_estimate": 30,
+        "value_per_run": 8.0,
+        "roai_typical": 3.2,
+        "setup_time_minutes": 10,
+    },
+    {
+        "id": "gov.roai-digest",
+        "name": "ROAI Weekly Digest",
+        "version": "1.1.0",
+        "category": "Governance",
+        "icon": "◈",
+        "icon_color": "#E5A83A",
+        "description": (
+            "Every Monday at 08:00 pulls ROAI data from Tessera, computes the "
+            "deflection rate trend vs. prior 4 weeks, and sends a structured digest "
+            "to the Agent Shepherd. Flags any agent whose ROAI dropped below threshold."
+        ),
+        "connectors_needed": [],
+        "hipaa_safe": True,
+        "governance_wired": True,
+        "framework": "custom",
+        "department": "ops",
+        "pipeline": "roai-reporting",
+        "phi_contribution": 0.01,
+        "tasks_automated": ["ROAI data pull", "trend computation", "digest email", "threshold alerting"],
+        "daily_runs_estimate": 1,
+        "value_per_run": 45.0,
+        "roai_typical": 8.0,
+        "setup_time_minutes": 5,
+    },
+    {
+        "id": "gov.lbi-watchdog",
+        "name": "LBI Watchdog",
+        "version": "1.0.0",
+        "category": "Governance",
+        "icon": "◫",
+        "icon_color": "#E5A83A",
+        "description": (
+            "Monitors the LBI meso layer score every 6 hours. When it drops below 0.20 "
+            "(RELAY warning threshold), immediately alerts the AI Council with the affected "
+            "department, the management layer involved, and a recommended intervention."
+        ),
+        "connectors_needed": [],
+        "hipaa_safe": True,
+        "governance_wired": True,
+        "framework": "custom",
+        "department": "ops",
+        "pipeline": "lbi-monitoring",
+        "phi_contribution": 0.01,
+        "tasks_automated": ["LBI polling", "threshold detection", "AI Council alert"],
+        "daily_runs_estimate": 4,
+        "value_per_run": 30.0,
+        "roai_typical": 7.5,
+        "setup_time_minutes": 5,
+    },
+    {
+        "id": "health.fax-triage",
+        "name": "Healthcare Fax Triage",
+        "version": "1.0.0",
+        "category": "Healthcare",
+        "icon": "◑",
+        "icon_color": "#E5504A",
+        "description": (
+            "Ingests incoming faxes via eFax webhook, uses Claude vision to read the document, "
+            "classifies type (referral, lab result, Rx, prior auth), extracts PHI fields with "
+            "full HIPAA audit trail, and routes to the right EHR queue. STAT/low-confidence faxes "
+            "go to a human reviewer with a pre-filled summary. Every PHI field access is "
+            "hash-chained in the Tessera audit log."
+        ),
+        "connectors_needed": ["efax", "ehr"],
+        "hipaa_safe": True,
+        "governance_wired": True,
+        "framework": "langgraph",
+        "department": "clinical-ops",
+        "pipeline": "fax-triage",
+        "phi_contribution": 0.04,
+        "tasks_automated": [
+            "fax OCR", "document classification", "PHI extraction",
+            "EHR queue routing", "STAT escalation with summary",
+        ],
+        "daily_runs_estimate": 200,
+        "value_per_run": 8.0,
+        "roai_typical": 9.6,
+        "setup_time_minutes": 30,
+    },
+    {
+        "id": "gov.compliance-reporter",
+        "name": "Compliance Evidence Compiler",
+        "version": "1.2.0",
+        "category": "Governance",
+        "icon": "◐",
+        "icon_color": "#E5A83A",
+        "description": (
+            "Monthly: pulls your audit trail from Tessera, maps events to SOC2 TSC "
+            "and HIPAA §164.312 controls, and generates a signed PDF evidence package "
+            "ready for your auditor. Flags any control with insufficient coverage."
+        ),
+        "connectors_needed": [],
+        "hipaa_safe": True,
+        "governance_wired": True,
+        "framework": "custom",
+        "department": "ops",
+        "pipeline": "compliance-reporting",
+        "phi_contribution": 0.01,
+        "tasks_automated": ["audit event pull", "control mapping", "evidence PDF generation", "gap flagging"],
+        "daily_runs_estimate": 1,
+        "value_per_run": 120.0,
+        "roai_typical": 11.2,
+        "setup_time_minutes": 5,
+    },
+]
+
+_BLUEPRINT_MAP = {b["id"]: b for b in _BLUEPRINTS}
+
 db: asyncpg.Pool | None = None
 
 @asynccontextmanager
@@ -363,6 +599,101 @@ async def resume_agent(agent_id: str, actor: str = "system"):
             INSERT INTO agent_lifecycle_events (id, agent_id, event_type, actor) VALUES ($1,$2,'resumed',$3)
         """, str(uuid.uuid4()), agent_id, actor)
     return {"agent_id": agent_id, "status": "active"}
+
+
+# ─── BLUEPRINT CATALOGUE ─────────────────────────────────────────────────────
+
+@app.get("/blueprints")
+def list_blueprints(category: Optional[str] = None):
+    """Return the Tessera pre-built agent catalogue."""
+    items = _BLUEPRINTS
+    if category and category.lower() != "all":
+        items = [b for b in items if b["category"].lower() == category.lower()]
+    return {
+        "blueprints": items,
+        "total": len(items),
+        "categories": sorted({b["category"] for b in _BLUEPRINTS}),
+    }
+
+
+@app.get("/blueprints/{blueprint_id}")
+def get_blueprint(blueprint_id: str):
+    """Return a single blueprint by ID."""
+    bp = _BLUEPRINT_MAP.get(blueprint_id)
+    if not bp:
+        raise HTTPException(404, f"Blueprint '{blueprint_id}' not found")
+    return bp
+
+
+class DeployBlueprintRequest(BaseModel):
+    org_id: str = "demo-org"
+    oversight_human: Optional[str] = None   # VC overseer email
+    deployed_by: Optional[str] = None
+
+
+@app.post("/blueprints/{blueprint_id}/deploy", status_code=201)
+async def deploy_blueprint(blueprint_id: str, body: DeployBlueprintRequest):
+    """
+    Deploy a pre-built blueprint into an org's agent registry.
+    Creates an agent_registry entry, updates org φ, and returns a TAR
+    (Tessera Agent Runtime) deployment manifest with Docker pull commands.
+    """
+    bp = _BLUEPRINT_MAP.get(blueprint_id)
+    if not bp:
+        raise HTTPException(404, f"Blueprint '{blueprint_id}' not found")
+
+    # Reuse onboard logic
+    onboard_req = AgentOnboardRequest(
+        org_id=body.org_id,
+        name=bp["name"],
+        description=bp["description"],
+        department=bp["department"],
+        pipeline=bp["pipeline"],
+        framework=bp["framework"],
+        phi_contribution=bp["phi_contribution"],
+        tasks_automated=bp["tasks_automated"],
+        daily_runs=bp["daily_runs_estimate"],
+        value_per_run=bp["value_per_run"],
+        oversight_human=body.oversight_human,
+        onboarded_by=body.deployed_by or "blueprint-deploy",
+    )
+    result = await onboard_agent(onboard_req)
+
+    # TAR deployment manifest — what the customer runs once in their env
+    tar_manifest = {
+        "image": f"ghcr.io/tessera-platform/tar:{bp['version']}",
+        "blueprint_id": blueprint_id,
+        "blueprint_version": bp["version"],
+        "agent_id": result["agent_id"],
+        "connectors_required": bp["connectors_needed"],
+        "deploy_command": (
+            f"docker run -d --name tessera-agent-{result['agent_id'][:8]} "
+            f"  -e TESSERA_URL=http://your-tessera/api/v1 "
+            f"  -e TESSERA_ORG={body.org_id} "
+            f"  -e TESSERA_AGENT_ID={result['agent_id']} "
+            f"  -e BLUEPRINT_ID={blueprint_id} "
+            f"  ghcr.io/tessera-platform/tar:{bp['version']}"
+        ),
+        "note": (
+            "TAR (Tessera Agent Runtime) runs the blueprint in your environment. "
+            "Data never leaves your infrastructure. "
+            "Pull the image, set the env vars, and the agent registers itself with Tessera."
+        ),
+    }
+
+    return {
+        **result,
+        "blueprint_id": blueprint_id,
+        "blueprint_name": bp["name"],
+        "blueprint_version": bp["version"],
+        "tar_manifest": tar_manifest,
+        "next_steps": [
+            f"1. Copy the deploy_command from tar_manifest and run it in your environment",
+            f"2. The agent will appear as '{bp['name']}' in Agent Registry within 30s",
+            f"3. Connect required systems: {', '.join(bp['connectors_needed']) or 'none required'}",
+            f"4. ROAI tracking starts automatically — check the ROAI Dashboard after first run",
+        ],
+    }
 
 
 # ─── AGENT FACTORY (original endpoints) ───────────────────────────────────────

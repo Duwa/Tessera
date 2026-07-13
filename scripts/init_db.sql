@@ -46,3 +46,11 @@ GRANT ALL PRIVILEGES ON DATABASE tessera_workforce         TO tessera;
 GRANT ALL PRIVILEGES ON DATABASE tessera_finance           TO tessera;
 GRANT ALL PRIVILEGES ON DATABASE tessera_knowledge         TO tessera;
 GRANT ALL PRIVILEGES ON DATABASE tessera_catalog           TO tessera;
+
+CREATE DATABASE tessera_agents;
+CREATE DATABASE tessera_deployment;
+CREATE DATABASE tessera_goals;
+
+GRANT ALL PRIVILEGES ON DATABASE tessera_agents     TO tessera;
+GRANT ALL PRIVILEGES ON DATABASE tessera_deployment TO tessera;
+GRANT ALL PRIVILEGES ON DATABASE tessera_goals      TO tessera;

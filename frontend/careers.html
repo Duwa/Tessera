@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Careers — Tessera</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f6fb;
+  --white:#ffffff;
+  --indigo:#1e1b4b;
+  --indigo-mid:#312e81;
+  --purple:#7c3aed;
+  --purple-light:#ede9fe;
+  --purple-faint:#f5f3ff;
+  --green:#059669;
+  --green-bg:#ecfdf5;
+  --amber:#d97706;
+  --amber-bg:#fffbeb;
+  --red:#dc2626;
+  --red-bg:#fef2f2;
+  --text:#111827;
+  --muted:#6b7280;
+  --border:#e5e7eb;
+  --border2:#d1d5db;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 6px -1px rgba(0,0,0,.07),0 2px 4px -1px rgba(0,0,0,.05);
+  --shadow-lg:0 10px 15px -3px rgba(0,0,0,.07),0 4px 6px -2px rgba(0,0,0,.04);
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI',system-ui,sans-serif;font-size:15px;line-height:1.6;min-height:100vh}
+
+/* ── NAV ── */
+nav{background:var(--indigo);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 rgba(255,255,255,.08)}
+.nav-logo{display:flex;align-items:center;gap:.625rem;text-decoration:none}
+.nav-logo-mark{width:28px;height:28px;background:var(--purple);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;letter-spacing:-.03em}
+.nav-logo-text{font-size:17px;font-weight:700;color:#fff;letter-spacing:-.02em}
+.nav-right{display:flex;align-items:center;gap:1.25rem}
+.nav-tag{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.45);font-weight:500}
+.nav-link{font-size:13px;color:rgba(255,255,255,.7);text-decoration:none;transition:color .15s}
+.nav-link:hover{color:#fff}
+.nav-btn{background:var(--purple);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;padding:.45rem 1rem;cursor:pointer;text-decoration:none;transition:background .15s}
+.nav-btn:hover{background:#6d28d9}
+
+/* ── HERO ── */
+.hero{background:var(--indigo);padding:4rem 2rem 3rem;text-align:center}
+.hero-eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:1.25rem;font-weight:500}
+.hero h1{font-size:clamp(2rem,4vw,3rem);font-weight:800;color:#fff;letter-spacing:-.03em;line-height:1.1;text-wrap:balance;margin-bottom:1rem}
+.hero h1 span{color:#a78bfa}
+.hero-sub{font-size:17px;color:rgba(255,255,255,.6);max-width:520px;margin:0 auto 2rem;text-wrap:balance}
+.search-row{display:flex;gap:.625rem;max-width:560px;margin:0 auto}
+.search-input{flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:.75rem 1rem;color:#fff;font-size:14px;outline:none;transition:border .15s}
+.search-input::placeholder{color:rgba(255,255,255,.4)}
+.search-input:focus{border-color:var(--purple);background:rgba(255,255,255,.12)}
+.search-btn{background:var(--purple);border:none;border-radius:9px;padding:.75rem 1.25rem;color:#fff;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s}
+.search-btn:hover{background:#6d28d9}
+
+/* ── STATS BAR ── */
+.stats-bar{background:var(--indigo-mid);border-top:1px solid rgba(255,255,255,.08);padding:.875rem 2rem;display:flex;justify-content:center;gap:3rem}
+.stat{text-align:center}
+.stat-n{font-size:1.25rem;font-weight:700;color:#fff;font-variant-numeric:tabular-nums}
+.stat-l{font-size:11px;color:rgba(255,255,255,.45);letter-spacing:.04em}
+
+/* ── FILTER CHIPS ── */
+.filters{padding:1.5rem 2rem 0;display:flex;gap:.5rem;flex-wrap:wrap;max-width:1200px;margin:0 auto}
+.chip{padding:.35rem .875rem;border-radius:20px;font-size:12.5px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--muted);transition:all .15s;white-space:nowrap}
+.chip:hover{border-color:var(--purple);color:var(--purple)}
+.chip.active{background:var(--purple-light);border-color:var(--purple);color:var(--purple)}
+
+/* ── LAYOUT ── */
+.main{max-width:1200px;margin:0 auto;padding:1.5rem 2rem 4rem;display:grid;grid-template-columns:1fr 420px;gap:1.5rem;align-items:start}
+@media(max-width:900px){.main{grid-template-columns:1fr}}
+
+/* ── JOB LIST ── */
+.jobs-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.jobs-count{font-size:13px;color:var(--muted)}
+.job-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:.75rem;cursor:pointer;transition:all .18s;box-shadow:var(--shadow)}
+.job-card:hover{border-color:var(--purple);box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.job-card.selected{border-color:var(--purple);box-shadow:0 0 0 3px var(--purple-light)}
+.job-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:.75rem}
+.job-dept-icon{width:38px;height:38px;border-radius:9px;background:var(--purple-faint);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.job-title{font-size:15px;font-weight:700;color:var(--indigo);line-height:1.3;margin-bottom:.2rem}
+.job-dept{font-size:12px;color:var(--muted)}
+.job-meta{display:flex;gap:.625rem;flex-wrap:wrap;margin-bottom:.875rem}
+.meta-tag{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:.25rem}
+.meta-tag svg{opacity:.5}
+.job-skills{display:flex;gap:.375rem;flex-wrap:wrap}
+.skill-tag{font-size:11px;padding:.2rem .6rem;border-radius:5px;background:var(--bg);border:1px solid var(--border);color:var(--muted);font-weight:500;font-family:'SF Mono','Consolas',monospace}
+.skill-tag.matched{background:var(--green-bg);border-color:#a7f3d0;color:var(--green)}
+.job-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.875rem;padding-top:.75rem;border-top:1px solid var(--bg)}
+.posted-ago{font-size:11.5px;color:var(--muted)}
+.phi-badge{font-size:10.5px;padding:.2rem .625rem;border-radius:20px;font-weight:600}
+.phi-guardian{background:#faf5ff;color:#7c3aed;border:1px solid #ddd6fe}
+.phi-standard{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
+
+/* ── DETAIL PANEL ── */
+.detail-panel{position:sticky;top:76px;background:var(--white);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow-lg);max-height:calc(100vh - 96px);overflow-y:auto}
+.detail-empty{padding:3rem 2rem;text-align:center;color:var(--muted)}
+.detail-empty-icon{font-size:2.5rem;margin-bottom:.75rem;opacity:.4}
+.detail-header{padding:1.5rem;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--purple-faint) 0%,var(--white) 100%)}
+.detail-dept-icon{width:44px;height:44px;border-radius:10px;background:var(--purple-light);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:.875rem}
+.detail-title{font-size:18px;font-weight:800;color:var(--indigo);margin-bottom:.35rem;line-height:1.25}
+.detail-meta{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.5rem}
+.detail-meta-item{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:.3rem}
+.detail-salary{font-size:13px;font-weight:600;color:var(--green);margin-top:.35rem}
+.detail-body{padding:1.25rem 1.5rem}
+.section-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:.625rem;margin-top:1.25rem}
+.section-label:first-child{margin-top:0}
+.detail-desc{font-size:13.5px;color:#374151;line-height:1.65}
+
+/* ── SKILL GAP ── */
+.gap-intro{font-size:12.5px;color:var(--muted);margin-bottom.875rem}
+.skill-gap-list{display:flex;flex-direction:column;gap:.5rem}
+.sgap-row{display:flex;align-items:center;gap:.625rem}
+.sgap-check{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;background:var(--white)}
+.sgap-check.checked{background:var(--green);border-color:var(--green)}
+.sgap-check.checked::after{content:'✓';color:#fff;font-size:11px;font-weight:700}
+.sgap-name{font-size:13px;font-weight:500;font-family:'SF Mono','Consolas',monospace;flex:1}
+.sgap-status{font-size:11px;font-weight:600;padding:.15rem .5rem;border-radius:4px}
+.s-have{background:var(--green-bg);color:var(--green)}
+.s-gap{background:var(--amber-bg);color:var(--amber)}
+
+/* ── MATCH METER ── */
+.match-meter{background:var(--bg);border-radius:10px;padding:1rem;margin:1rem 0}
+.match-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.match-label{font-size:12px;font-weight:600;color:var(--indigo)}
+.match-pct{font-size:1.5rem;font-weight:800;font-variant-numeric:tabular-nums}
+.match-bar-bg{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.match-bar-fill{height:100%;border-radius:4px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+.match-msg{font-size:11.5px;color:var(--muted);margin-top:.5rem}
+
+/* ── LEARNING PATHS ── */
+.lp-list{display:flex;flex-direction:column;gap:.5rem;margin-top:.25rem}
+.lp-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.75rem;display:flex;gap:.75rem;align-items:flex-start}
+.lp-partner{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:.2rem .5rem;border-radius:4px;white-space:nowrap;flex-shrink:0}
+.lp-coursera{background:#0056d2;color:#fff}
+.lp-udemy{background:#a435f0;color:#fff}
+.lp-pluralsight{background:#f15b2a;color:#fff}
+.lp-edx{background:#02262b;color:#fff}
+.lp-linkedin{background:#0077b5;color:#fff}
+.lp-dice{background:#e8403a;color:#fff}
+.lp-aws{background:#ff9900;color:#fff}
+.lp-other{background:var(--indigo);color:#fff}
+.lp-info{flex:1;min-width:0}
+.lp-title{font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:.2rem;line-height:1.3}
+.lp-meta{font-size:11px;color:var(--muted)}
+.no-lp{font-size:12px;color:var(--muted);font-style:italic}
+
+/* ── APPLY FORM ── */
+.apply-form{display:flex;flex-direction:column;gap:.75rem}
+.form-row{display:flex;gap:.625rem}
+.form-field{display:flex;flex-direction:column;gap:.3rem;flex:1}
+.form-label{font-size:11.5px;font-weight:600;color:var(--indigo)}
+.form-input{border:1.5px solid var(--border2);border-radius:8px;padding:.6rem .875rem;font-size:13.5px;color:var(--text);outline:none;transition:border .15s;background:var(--white)}
+.form-input:focus{border-color:var(--purple)}
+.form-textarea{border:1.5px solid var(--border2);border-radius:8px;padding:.6rem .875rem;font-size:13px;color:var(--text);outline:none;transition:border .15s;background:var(--white);resize:vertical;min-height:80px;font-family:inherit}
+.form-textarea:focus{border-color:var(--purple)}
+.apply-btn{background:var(--purple);color:#fff;border:none;border-radius:9px;padding:.875rem;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s;margin-top:.25rem}
+.apply-btn:hover{background:#6d28d9}
+.apply-btn:disabled{background:#9ca3af;cursor:not-allowed}
+
+/* ── SUCCESS STATE ── */
+.apply-success{background:var(--green-bg);border:1.5px solid #a7f3d0;border-radius:10px;padding:1.25rem;text-align:center}
+.apply-success-icon{font-size:2rem;margin-bottom:.5rem}
+.apply-success h3{font-size:15px;font-weight:700;color:var(--green);margin-bottom:.35rem}
+.apply-success p{font-size:12.5px;color:#065f46;line-height:1.5}
+.match-result{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.875rem;margin-top:.875rem;text-align:left}
+.match-result-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:.5rem}
+
+/* ── EMPTY / LOADING ── */
+.loading{padding:3rem;text-align:center;color:var(--muted);font-size:14px}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 1rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── TALENT COMMUNITY ── */
+.talent-cta{background:linear-gradient(135deg,var(--indigo) 0%,var(--indigo-mid) 100%);border-radius:14px;padding:2rem;text-align:center;margin-top:1.5rem}
+.talent-cta h3{font-size:16px;font-weight:700;color:#fff;margin-bottom:.5rem}
+.talent-cta p{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:1.25rem;text-wrap:balance}
+.talent-cta-form{display:flex;gap:.5rem;max-width:380px;margin:0 auto}
+.talent-input{flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:.625rem 1rem;color:#fff;font-size:13px;outline:none}
+.talent-input::placeholder{color:rgba(255,255,255,.4)}
+.talent-input:focus{border-color:var(--purple)}
+.talent-submit{background:var(--purple);border:none;border-radius:8px;padding:.625rem 1rem;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="/careers">
+    <div class="nav-logo-mark">T</div>
+    <span class="nav-logo-text">Tessera</span>
+  </a>
+  <div class="nav-right">
+    <span class="nav-tag">Careers</span>
+    <a class="nav-link" href="/platform.html">Platform ↗</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">We're hiring</div>
+  <h1>Build the future of<br><span>governed intelligence</span></h1>
+  <p class="hero-sub">Every job posting tells you what you need. We show you how to get there — and we wait for you.</p>
+  <div class="search-row">
+    <input class="search-input" id="search-input" type="text" placeholder="Search roles, skills, teams…" oninput="filterJobs()">
+    <button class="search-btn" onclick="filterJobs()">Search</button>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-n" id="stat-open">—</div><div class="stat-l">Open roles</div></div>
+  <div class="stat"><div class="stat-n">Remote</div><div class="stat-l">First culture</div></div>
+  <div class="stat"><div class="stat-n">8</div><div class="stat-l">Learning partners</div></div>
+  <div class="stat"><div class="stat-n">100%</div><div class="stat-l">Transparent hiring</div></div>
+</div>
+
+<!-- FILTER CHIPS -->
+<div class="filters" id="dept-filters">
+  <div class="chip active" onclick="setDept(null,this)">All roles</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- JOB LIST -->
+  <div>
+    <div class="jobs-header">
+      <span class="jobs-count" id="jobs-count"></span>
+    </div>
+    <div id="job-list"><div class="loading"><div class="spinner"></div>Loading open roles…</div></div>
+
+    <!-- Talent community CTA -->
+    <div class="talent-cta" id="talent-cta" style="display:none">
+      <h3>Don't see the right role?</h3>
+      <p>Join our talent community. We'll reach out when a role matches your skills — and send you learning paths to close any gap in the meantime.</p>
+      <div class="talent-cta-form">
+        <input class="talent-input" id="talent-email" type="email" placeholder="your@email.com">
+        <button class="talent-submit" onclick="joinCommunity()">Join</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETAIL PANEL -->
+  <div>
+    <div class="detail-panel" id="detail-panel">
+      <div class="detail-empty">
+        <div class="detail-empty-icon">◑</div>
+        <div style="font-size:14px;font-weight:600;color:#374151;margin-bottom:.35rem">Select a role</div>
+        <div style="font-size:13px">Click any job to see the full description, check your skill match, and find learning paths for any gaps.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let _jobs = [];
+let _selectedJob = null;
+let _activeDept = null;
+let _mySkills = new Set();
+let _applySubmitted = false;
+
+const DEPT_ICONS = {
+  'Engineering': '⚙️', 'Data & AI': '🧠', 'Product': '◈',
+  'Customer Success': '◎', 'Solutions': '◇', 'default': '◑'
+};
+const PARTNER_CLASS = {
+  'Coursera': 'lp-coursera', 'Udemy': 'lp-udemy', 'Pluralsight': 'lp-pluralsight',
+  'edX': 'lp-edx', 'LinkedIn Learning': 'lp-linkedin', 'Dice Learning': 'lp-dice',
+  'AWS Training': 'lp-aws', 'Linux Foundation': 'lp-other', 'Celonis Academy': 'lp-other',
+  'Workday Learning': 'lp-other', 'SAP Learning Hub': 'lp-other',
+};
+
+async function loadJobs() {
+  try {
+    const r = await fetch('/public/jobs');
+    const d = await r.json();
+    _jobs = d.jobs || [];
+  } catch(e) {
+    _jobs = [];
+  }
+  document.getElementById('stat-open').textContent = _jobs.length;
+  buildDeptFilters();
+  renderJobs(_jobs);
+  document.getElementById('talent-cta').style.display = '';
+}
+
+function buildDeptFilters() {
+  const depts = [...new Set(_jobs.map(j => j.department).filter(Boolean))].sort();
+  const el = document.getElementById('dept-filters');
+  depts.forEach(d => {
+    const c = document.createElement('div');
+    c.className = 'chip';
+    c.textContent = d;
+    c.onclick = () => setDept(d, c);
+    el.appendChild(c);
+  });
+}
+
+function setDept(dept, el) {
+  _activeDept = dept;
+  document.querySelectorAll('.filters .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  filterJobs();
+}
+
+function filterJobs() {
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  let filtered = _jobs;
+  if (_activeDept) filtered = filtered.filter(j => j.department === _activeDept);
+  if (q) filtered = filtered.filter(j =>
+    j.title.toLowerCase().includes(q) ||
+    (j.description||'').toLowerCase().includes(q) ||
+    (j.skills_required||[]).some(s => s.toLowerCase().includes(q))
+  );
+  renderJobs(filtered);
+}
+
+function renderJobs(jobs) {
+  const el = document.getElementById('job-list');
+  document.getElementById('jobs-count').textContent = `${jobs.length} role${jobs.length!==1?'s':''}`;
+  if (!jobs.length) {
+    el.innerHTML = '<div class="loading" style="padding:2rem">No roles match your search.</div>';
+    return;
+  }
+  el.innerHTML = jobs.map(j => jobCardHTML(j)).join('');
+}
+
+function jobCardHTML(j) {
+  const icon = DEPT_ICONS[j.department] || DEPT_ICONS.default;
+  const skills = (j.skills_required || []).slice(0, 5);
+  const matchedSkills = skills.filter(s => _mySkills.has(s));
+  const salaryStr = j.salary_min && j.salary_max
+    ? `$${(j.salary_min/1000).toFixed(0)}k – $${(j.salary_max/1000).toFixed(0)}k`
+    : '';
+  const selected = _selectedJob && _selectedJob.id === j.id ? ' selected' : '';
+  return `<div class="job-card${selected}" onclick="selectJob('${j.id}')">
+    <div class="job-card-top">
+      <div style="display:flex;gap:.75rem;align-items:flex-start;flex:1">
+        <div class="job-dept-icon">${icon}</div>
+        <div>
+          <div class="job-title">${j.title}</div>
+          <div class="job-dept">${j.department || ''}${j.location ? ' · ' + j.location : ''}</div>
+        </div>
+      </div>
+      <span class="phi-badge ${j.phi_role==='phi_guardian'?'phi-guardian':'phi-standard'}">
+        ${j.phi_role==='phi_guardian'?'φ-Guardian':'Standard'}
+      </span>
+    </div>
+    <div class="job-meta">
+      <span class="meta-tag">📍 ${j.location||'Remote'}</span>
+      <span class="meta-tag">🕐 ${j.employment_type||'Full-time'}</span>
+      ${salaryStr ? `<span class="meta-tag" style="color:var(--green);font-weight:600">${salaryStr}</span>` : ''}
+    </div>
+    <div class="job-skills">
+      ${skills.map(s => `<span class="skill-tag${matchedSkills.includes(s)?' matched':''}">${s}</span>`).join('')}
+      ${(j.skills_required||[]).length > 5 ? `<span class="skill-tag">+${j.skills_required.length-5} more</span>` : ''}
+    </div>
+    <div class="job-footer">
+      <span class="posted-ago">Posted ${j.posted_days_ago === 0 ? 'today' : j.posted_days_ago + 'd ago'}</span>
+      ${matchedSkills.length > 0 ? `<span style="font-size:11.5px;color:var(--green);font-weight:600">✓ ${matchedSkills.length}/${skills.length} skills matched</span>` : ''}
+    </div>
+  </div>`;
+}
+
+async function selectJob(id) {
+  _selectedJob = _jobs.find(j => j.id === id);
+  _mySkills = new Set();
+  _applySubmitted = false;
+  document.querySelectorAll('.job-card').forEach(c => c.classList.remove('selected'));
+  event && event.currentTarget && event.currentTarget.classList.add('selected');
+  renderJobs(_activeDept ? _jobs.filter(j=>j.department===_activeDept) : _jobs);
+  renderDetail(_selectedJob);
+
+  // Fetch full detail with learning paths
+  try {
+    const r = await fetch(`/public/jobs/${id}`);
+    const detail = await r.json();
+    _selectedJob = {..._selectedJob, ...detail};
+    renderDetail(_selectedJob);
+  } catch(e) {}
+}
+
+function renderDetail(job) {
+  const el = document.getElementById('detail-panel');
+  const icon = DEPT_ICONS[job.department] || DEPT_ICONS.default;
+  const salaryStr = job.salary_min && job.salary_max
+    ? `$${(job.salary_min/1000).toFixed(0)}k – $${(job.salary_max/1000).toFixed(0)}k / year`
+    : '';
+  const skills = job.skills_required || [];
+  const matched = skills.filter(s => _mySkills.has(s));
+  const pct = skills.length ? Math.round(matched.length/skills.length*100) : 100;
+  const barColor = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : '#ef4444';
+  const pctColor = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : '#ef4444';
+  const msg = pct >= 80 ? 'Strong match — apply now.' : pct >= 50 ? 'Developing match — complete learning paths to strengthen your application.' : 'Early stage — start with the learning paths below and apply when ready.';
+
+  const gapSkills = skills.filter(s => !_mySkills.has(s));
+  const learningPaths = job.learning_paths || {};
+
+  el.innerHTML = `
+    <div class="detail-header">
+      <div class="detail-dept-icon">${icon}</div>
+      <div class="detail-title">${job.title}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:.2rem">${job.department||''}${job.location?' · '+job.location:''}</div>
+      <div class="detail-meta">
+        <div class="detail-meta-item">🕐 ${job.employment_type||'Full-time'}</div>
+        ${job.phi_role==='phi_guardian'?'<div class="detail-meta-item" style="color:var(--purple);font-weight:600">⬡ φ-Guardian role</div>':''}
+      </div>
+      ${salaryStr ? `<div class="detail-salary">${salaryStr}</div>` : ''}
+    </div>
+    <div class="detail-body">
+
+      <div class="section-label">About the role</div>
+      <div class="detail-desc">${job.description || 'Full description coming soon.'}</div>
+
+      <div class="section-label" style="margin-top:1.5rem">Check your match</div>
+      <div style="font-size:12.5px;color:var(--muted);margin-bottom:.875rem">Check the skills you already have. We'll show you learning paths for the rest.</div>
+
+      <div class="match-meter">
+        <div class="match-top">
+          <span class="match-label">Your match</span>
+          <span class="match-pct" style="color:${pctColor}">${pct}%</span>
+        </div>
+        <div class="match-bar-bg">
+          <div class="match-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+        </div>
+        <div class="match-msg">${msg}</div>
+      </div>
+
+      <div class="skill-gap-list">
+        ${skills.map(s => `
+          <div class="sgap-row">
+            <div class="sgap-check${_mySkills.has(s)?' checked':''}" onclick="toggleSkill('${s}','${job.id}')"></div>
+            <span class="sgap-name">${s}</span>
+            <span class="sgap-status ${_mySkills.has(s)?'s-have':'s-gap'}">${_mySkills.has(s)?'I have this':'Learning needed'}</span>
+          </div>`).join('')}
+      </div>
+
+      ${gapSkills.length > 0 ? `
+        <div class="section-label" style="margin-top:1.5rem">Learning paths for your gaps</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:.875rem">Curated courses from our learning partners. Complete these and re-apply — your progress is saved.</div>
+        ${gapSkills.filter(s => (learningPaths[s]||[]).length > 0).map(s => `
+          <div style="margin-bottom:1rem">
+            <div style="font-size:11.5px;font-weight:700;color:var(--indigo);font-family:'SF Mono','Consolas',monospace;margin-bottom:.375rem">${s}</div>
+            <div class="lp-list">
+              ${(learningPaths[s]||[]).slice(0,2).map(lp => `
+                <div class="lp-card">
+                  <span class="lp-partner ${PARTNER_CLASS[lp.partner]||'lp-other'}">${lp.partner}</span>
+                  <div class="lp-info">
+                    <div class="lp-title">${lp.title}</div>
+                    <div class="lp-meta">${lp.duration} · ${lp.level}</div>
+                  </div>
+                </div>`).join('')}
+            </div>
+          </div>`).join('')}
+        ${gapSkills.filter(s => !(learningPaths[s]||[]).length).length > 0 ? `
+          <div class="lp-card" style="margin-bottom:.5rem">
+            <span class="lp-partner lp-other">Tessera</span>
+            <div class="lp-info">
+              <div class="lp-title">Tessera Internal Learning Track</div>
+              <div class="lp-meta">Provided during onboarding for remaining skills</div>
+            </div>
+          </div>` : ''}
+      ` : pct === 100 ? `
+        <div style="background:var(--green-bg);border:1px solid #a7f3d0;border-radius:8px;padding:.875rem;margin-top:1rem;font-size:13px;color:var(--green);font-weight:600;text-align:center">
+          ✓ Perfect match — you have all required skills
+        </div>` : ''}
+
+      <div class="section-label" style="margin-top:1.5rem">Apply for this role</div>
+      ${_applySubmitted ? renderSuccess() : renderApplyForm(job.id)}
+    </div>`;
+
+  el.scrollTop = 0;
+}
+
+function renderApplyForm(jobId) {
+  return `<form class="apply-form" onsubmit="submitApplication(event,'${jobId}')">
+    <div class="form-row">
+      <div class="form-field">
+        <label class="form-label">Full name *</label>
+        <input class="form-input" id="apply-name" type="text" placeholder="Jane Smith" required>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Email *</label>
+        <input class="form-input" id="apply-email" type="email" placeholder="jane@example.com" required>
+      </div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">LinkedIn URL</label>
+      <input class="form-input" id="apply-linkedin" type="url" placeholder="https://linkedin.com/in/…">
+    </div>
+    <div class="form-field">
+      <label class="form-label">Brief note (optional)</label>
+      <textarea class="form-textarea" id="apply-note" placeholder="What draws you to this role? Anything about your background we should know?"></textarea>
+    </div>
+    <button class="apply-btn" type="submit" id="apply-btn">Submit application →</button>
+    <div style="font-size:11.5px;color:var(--muted);text-align:center">Your skills checklist above is included automatically. Governed pipeline — you'll know exactly where you stand.</div>
+  </form>`;
+}
+
+function renderSuccess(result) {
+  if (!result) return `<div class="apply-success"><div class="apply-success-icon">✓</div><h3>Application received</h3><p>We'll be in touch soon.</p></div>`;
+  const pct = result.match_percentage;
+  const barColor = pct >= 80 ? '#059669' : pct >= 50 ? '#d97706' : '#dc2626';
+  return `<div class="apply-success">
+    <div class="apply-success-icon">✓</div>
+    <h3>Application received, ${result._name}!</h3>
+    <p>${result.next_step}</p>
+    <div class="match-result">
+      <div class="match-result-title">Your skill match</div>
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem">
+        <div style="flex:1;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:${barColor};border-radius:3px"></div>
+        </div>
+        <span style="font-size:14px;font-weight:700;color:${barColor};font-variant-numeric:tabular-nums">${pct}%</span>
+      </div>
+      ${result.missing_skills && result.missing_skills.length > 0 ? `
+        <div style="font-size:11.5px;color:var(--muted)">Learning paths sent for: ${result.missing_skills.join(', ')}</div>` : `
+        <div style="font-size:11.5px;color:var(--green);font-weight:600">✓ You matched all required skills</div>`}
+    </div>
+  </div>`;
+}
+
+function toggleSkill(skill, jobId) {
+  if (_mySkills.has(skill)) _mySkills.delete(skill);
+  else _mySkills.add(skill);
+  renderDetail(_selectedJob);
+  // Re-render job cards to update match indicators
+  filterJobs();
+}
+
+async function submitApplication(e, jobId) {
+  e.preventDefault();
+  const btn = document.getElementById('apply-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+  const name = document.getElementById('apply-name').value;
+  const email = document.getElementById('apply-email').value;
+  const linkedin = document.getElementById('apply-linkedin').value;
+  const note = document.getElementById('apply-note').value;
+  try {
+    const r = await fetch('/public/apply', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        job_id: jobId, name, email,
+        linkedin_url: linkedin || null,
+        skills: [..._mySkills],
+        note: note || null,
+      })
+    });
+    const result = await r.json();
+    result._name = name.split(' ')[0];
+    _applySubmitted = true;
+    const body = document.querySelector('.detail-body');
+    const applySection = body.querySelector('.apply-form');
+    if (applySection) applySection.parentElement.innerHTML = `<div class="section-label">Apply for this role</div>${renderSuccess(result)}`;
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = 'Submit application →';
+    alert('Something went wrong. Please try again.');
+  }
+}
+
+function joinCommunity() {
+  const email = document.getElementById('talent-email').value;
+  if (!email) return;
+  const btn = event.target;
+  btn.textContent = '✓ Joined';
+  btn.style.background = 'var(--green)';
+  document.getElementById('talent-email').value = '';
+}
+
+loadJobs();
+</script>
+</body>
+</html>

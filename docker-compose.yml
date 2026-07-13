@@ -45,7 +45,8 @@ services:
       KNOWLEDGE_URL:        http://knowledge:8026
       SERVICE_CATALOG_URL:  http://service-catalog:8027
       DEPLOYMENT_URL:       http://deployment:8028
-    depends_on: [cost-benefit, payroll, learning, twin, people, expenses, onboarding, governance, intake, trace, agent-factory, identity, itsm, workos, notifications, audit, time-attendance, benefits, recruiting, performance, succession, compensation, absence, workforce-planning, finance, knowledge, service-catalog, deployment]
+      GOAL_PLANNING_URL:    http://goal-planning:8029
+    depends_on: [cost-benefit, payroll, learning, twin, people, expenses, onboarding, governance, intake, trace, agent-factory, identity, itsm, workos, notifications, audit, time-attendance, benefits, recruiting, performance, succession, compensation, absence, workforce-planning, finance, knowledge, service-catalog, deployment, goal-planning]
     networks: [tessera-net]
     restart: unless-stopped
 
@@ -381,6 +382,17 @@ services:
     ports: ["8027:8027"]
     environment:
       DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_catalog
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tessera-net]
+    restart: unless-stopped
+
+  goal-planning:
+    build: ./services/goal_planning
+    ports: ["8029:8029"]
+    environment:
+      DATABASE_URL: postgresql://tessera:tessera@postgres:5432/tessera_goals
     depends_on:
       postgres:
         condition: service_healthy

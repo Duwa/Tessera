@@ -64,6 +64,7 @@ SERVICES = {
     "absence":           os.getenv("ABSENCE_URL",            "http://localhost:8023"),
     "workforce-planning": os.getenv("WORKFORCE_PLANNING_URL","http://localhost:8024"),
     "deployment":         os.getenv("DEPLOYMENT_URL",          "http://localhost:8028"),
+    "goal-planning":      os.getenv("GOAL_PLANNING_URL",       "http://localhost:8029"),
     "finance":           os.getenv("FINANCE_URL",            "http://localhost:8025"),
     "knowledge":         os.getenv("KNOWLEDGE_URL",          "http://localhost:8026"),
     "service-catalog":   os.getenv("SERVICE_CATALOG_URL",    "http://localhost:8027"),
@@ -472,6 +473,15 @@ async def seed_demo(org_id: str = "demo-org"):
             if ar.status_code == 201:
                 m360_seeded += 1
         results["market360_agents"] = m360_seeded
+
+        # 14. Seed Market360 Goal-Plan-Account hierarchy
+        gp_url = SERVICES["goal-planning"]
+        gp_r = await client.post(f"{gp_url}/seed/market360")
+        if gp_r.status_code == 201:
+            gp_d = gp_r.json()
+            results["market360_gpa_goals"] = gp_d.get("seeded", 0)
+        else:
+            results["market360_gpa_goals"] = "skipped"
 
     results.update({"org_phi": round(phi, 4), "r_ap": round(r_ap, 4), "org_id": org_id})
     return {"status": "seeded", **results}
